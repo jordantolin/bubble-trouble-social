@@ -175,7 +175,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           </SelectTrigger>
           <SelectContent 
             position="popper" 
-            className="bg-white z-[100] max-h-60 overflow-auto shadow-lg"
+            className="bg-white z-[200] max-h-60 overflow-auto shadow-lg"
             sideOffset={5}
           >
             {TOPIC_CATEGORIES.map((category) => (
