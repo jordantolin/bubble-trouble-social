@@ -1,7 +1,6 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
+import { OrbitControls, Text, Billboard } from '@react-three/drei';
 import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
@@ -152,7 +151,7 @@ const StarIcon = ({ position, size }: { position: [number, number, number], size
   );
 };
 
-// Enhanced bubble with text overlays
+// Enhanced bubble with improved text overlays
 const BubbleSphere: React.FC<BubbleProps> = ({ 
   position, 
   size, 
@@ -196,7 +195,9 @@ const BubbleSphere: React.FC<BubbleProps> = ({
         
         // Update text position to match bubble
         if (textRef.current) {
+          // Position text directly above the bubble with proper vertical spacing
           textRef.current.position.copy(finalPosition);
+          // No need to adjust Y as Billboard component will handle positioning
         }
         
         // Rotation animation
@@ -224,9 +225,12 @@ const BubbleSphere: React.FC<BubbleProps> = ({
                              reflectCount >= 5 ? 0.7 : 
                              reflectCount >= 1 ? 0.5 : 0.4);
   
-  // Calculate the text size based on bubble size
-  const textScaleFactor = size * 0.25;
+  // Calculate the text size based on bubble size - improved scaling
+  const textScaleFactor = Math.max(0.2, Math.min(0.5, size * 0.25));
   const countTextSize = textScaleFactor * 0.8;
+  
+  // Calculate vertical offset for text based on bubble size
+  const verticalOffset = size * 1.2; // Increased spacing for better separation
   
   return (
     <group>
@@ -253,52 +257,64 @@ const BubbleSphere: React.FC<BubbleProps> = ({
         />
       </mesh>
       
-      {/* Text overlay group that always faces camera */}
+      {/* Improved text overlay with billboard for camera-facing orientation */}
       <group 
         ref={textRef}
         position={[position[0], position[1], position[2]]}
       >
-        {/* Topic text (centered) */}
-        <Text
-          position={[0, size * 0.2, 0]}
-          fontSize={textScaleFactor}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.02}
-          outlineColor="#000000"
-          maxWidth={size * 4}
+        <Billboard
+          follow={true}
+          lockX={false}
+          lockY={false}
+          lockZ={false}
         >
-          {bubble.topic}
-        </Text>
-        
-        {/* Author/username (smaller) */}
-        <Text
-          position={[0, 0, 0]}
-          fontSize={textScaleFactor * 0.7}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.02}
-          outlineColor="#000000"
-        >
-          {bubble.username || "Anonymous"}
-        </Text>
-        
-        {/* Reflection count with star */}
-        <group position={[0, -size * 0.5, 0]}>
+          {/* Topic text (centered above bubble) */}
           <Text
-            position={[0, 0, 0]}
-            fontSize={countTextSize}
+            position={[0, verticalOffset, 0]}
+            fontSize={textScaleFactor}
             color="white"
+            font="/fonts/Inter-Regular.woff"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.04}
+            outlineColor="#000000"
+            outlineOpacity={0.8}
+            maxWidth={size * 4}
+            textAlign="center"
+          >
+            {bubble.topic}
+          </Text>
+          
+          {/* Author/username (smaller) */}
+          <Text
+            position={[0, verticalOffset - textScaleFactor * 1.2, 0]}
+            fontSize={textScaleFactor * 0.7}
+            color="white"
+            font="/fonts/Inter-Regular.woff"
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.02}
             outlineColor="#000000"
+            outlineOpacity={0.8}
+          >
+            {bubble.username || "Anonymous"}
+          </Text>
+          
+          {/* Reflection count with star icon */}
+          <Text
+            position={[0, verticalOffset - textScaleFactor * 2.4, 0]}
+            fontSize={countTextSize}
+            color="white"
+            font="/fonts/Inter-Regular.woff"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.02}
+            outlineColor="#000000"
+            outlineOpacity={0.8}
           >
             {`★ ${bubble.reflect_count || 0}`}
           </Text>
-        </group>
+        </Billboard>
       </group>
       
       {/* Background glow effect - enhanced for better visibility */}
@@ -382,7 +398,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
       const orbitRadius = 3 + (bubbleIndex % 5);
       const orbitOffset = bubbleIndex * 0.5;
       const x = Math.cos(orbitOffset) * orbitRadius;
-      const y = Math.sin(orbitOffset * 0.5) * 1.5;
+      const y = Math.sin(index * 0.7) * 3.5; // More vertical distribution
       const z = Math.sin(orbitOffset) * orbitRadius;
       
       // Set the target position for camera animation
