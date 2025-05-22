@@ -17,7 +17,7 @@ import { Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 
-// New topic array as requested by the user
+// Define topics array
 const topics = ["Tech", "Art", "Life", "Gaming", "Music", "Science"];
 
 // Create Bubble Form Component
@@ -126,7 +126,10 @@ const CreateBubbleForm = ({
         <Label htmlFor="topic">Topic</Label>
         <Select 
           value={topic} 
-          onValueChange={(value) => setTopic(value)} 
+          onValueChange={value => {
+            console.log("Topic selected:", value);
+            setTopic(value);
+          }} 
           disabled={isSubmitting || isSuccess}
         >
           <SelectTrigger 
@@ -164,11 +167,7 @@ const CreateBubbleForm = ({
             type="button" 
             disabled={isSubmitting || isSuccess} 
             className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onClose();
-            }}
+            onClick={() => onClose()}
           >
             Cancel
           </Button>
@@ -379,18 +378,11 @@ const Dashboard = () => {
             open={dialogOpen} 
             onOpenChange={(open) => {
               console.log("Dialog onOpenChange called with value:", open);
-              // Only allow the dialog to be closed, not auto-opened
-              if (!open) {
-                setDialogOpen(false);
-              }
+              setDialogOpen(open);
             }}
           >
             <DialogContent 
               className="sm:max-w-md z-50"
-              onInteractOutside={(e) => {
-                // Prevent the dialog from closing when clicking outside
-                e.preventDefault();
-              }}
             >
               <DialogHeader>
                 <DialogTitle>Create a New Bubble</DialogTitle>
