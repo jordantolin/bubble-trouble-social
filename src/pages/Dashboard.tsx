@@ -332,14 +332,11 @@ const Dashboard = () => {
       {isLoading ? <div className="flex justify-center py-6">
           <div className="w-16 h-16 rounded-full border-4 border-t-[#FFD500] border-b-[#FFD500] border-r-transparent border-l-transparent animate-spin"></div>
         </div> : <>
-          <Dialog open={dialogOpen} onOpenChange={open => {
-        console.log("Dialog state changed:", open);
-        if (!open) {
-          // When closing, ensure we properly update our state
-          handleCloseDialog();
-        }
-        setDialogOpen(open);
-      }}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            console.log("Dialog state changed:", open);
+            // Only update the state, don't toggle it back
+            setDialogOpen(open);
+          }}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create a New Bubble</DialogTitle>
