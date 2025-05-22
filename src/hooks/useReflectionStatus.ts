@@ -61,7 +61,8 @@ export const useReflectionStatus = (bubbleId: string) => {
             filter: `bubble_id=eq.${bubbleId}` 
           },
           (payload) => {
-            if (payload.new && payload.new.username === user.username) {
+            const payloadData = payload.new as { username?: string };
+            if (payloadData && payloadData.username === user.username) {
               setIsReflected(true);
             }
           }

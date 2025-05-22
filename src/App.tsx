@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -143,8 +142,8 @@ const MainLayout = () => {
                 <AvatarFallback className="bg-bubble-yellow text-white">
                   {user?.username?.charAt(0).toUpperCase() || "BT"}
                 </AvatarFallback>
-                {user?.avatar_url && (
-                  <AvatarImage src={user.avatar_url} alt={user.username || "User"} />
+                {user?.avatarUrl && (
+                  <AvatarImage src={user.avatarUrl} alt={user.username || "User"} />
                 )}
               </Avatar>
             </div>
