@@ -1,13 +1,13 @@
 
 export interface Bubble {
   id: string;
-  name: string;
+  name: string | null;
   topic: string;
-  description: string;
-  author_id: string;
-  username: string;
-  created_at: string;
-  expires_at: string;
-  reflect_count: number;
-  size: number; // Changed from string to number to match the database schema
+  description: string | null;
+  author_id: string | null;
+  username: string | null;
+  created_at: string | null;
+  expires_at: string | null;
+  reflect_count: number | null;
+  size: string | null; // Keep as string to match the database schema
 }

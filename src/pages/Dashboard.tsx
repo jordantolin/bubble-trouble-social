@@ -21,19 +21,7 @@ import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
 import { useReflectionStatus } from "@/hooks/useReflectionStatus";
 import "../components/BubbleOrbit.css";
-
-// Type for bubble data from Supabase
-interface Bubble {
-  id: string;
-  name: string;
-  topic: string;
-  description: string | null;
-  username: string;
-  created_at: string;
-  expires_at: string;
-  size: string;
-  reflect_count: number | null;
-}
+import { Bubble } from "@/types/bubble";
 
 // Create Bubble Form Component
 const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
@@ -72,7 +60,8 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           description: description || null,
           username: user?.username || user?.email?.split('@')[0] || '',
           expires_at: expiresAt.toISOString(),
-          size: 'sm', // Default size
+          size: 'sm', // Default size as string to match DB
+          message: "", // Adding this to fix the TypeScript error
         })
         .select();
       

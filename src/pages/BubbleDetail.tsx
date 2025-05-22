@@ -12,25 +12,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Send } from "lucide-react";
 import ReflectButton from "@/components/ReflectButton";
 import { useReflectionStatus } from "@/hooks/useReflectionStatus";
+import { Bubble } from "@/types/bubble";
 
-// Type definitions
-interface Bubble {
-  id: string;
-  name: string;
-  topic: string;
-  description: string | null;
-  username: string;
-  created_at: string;
-  expires_at: string;
-  size: string;
-  reflect_count: number | null;
-}
-
+// Type for bubble messages
 interface BubbleMessage {
   id: string;
   bubble_id: string;
-  content: string;
-  username: string;
+  content: string | null;
+  message: string;
+  username: string | null;
   created_at: string;
 }
 
@@ -60,7 +50,7 @@ const BubbleDetail = () => {
         
         if (error) throw error;
         
-        setBubble(data);
+        setBubble(data as Bubble);
       } catch (error) {
         console.error("Error fetching bubble:", error);
         toast({
@@ -166,6 +156,7 @@ const BubbleDetail = () => {
           bubble_id: id,
           content: newMessage.trim(),
           username: user?.username || '',
+          message: newMessage.trim(), // Added to match required field in schema
         })
         .select();
       
@@ -268,13 +259,13 @@ const BubbleDetail = () => {
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
                               <AvatarFallback>
-                                {message.username.charAt(0).toUpperCase()}
+                                {message.username?.charAt(0).toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <span>{message.username}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{message.content}</TableCell>
+                        <TableCell>{message.content || message.message}</TableCell>
                         <TableCell className="text-right">
                           {format(new Date(message.created_at), 'HH:mm, MMM d')}
                         </TableCell>

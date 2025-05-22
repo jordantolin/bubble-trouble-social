@@ -9,19 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-// Bubble data type from Dashboard
-export interface Bubble {
-  id: string;
-  name: string;
-  topic: string;
-  description: string | null;
-  username: string;
-  created_at: string;
-  expires_at: string;
-  size: string;
-  reflect_count: number | null;
-}
+import { Bubble } from "@/types/bubble";
 
 interface BubbleOrbitProps {
   bubbles: Bubble[];
@@ -77,7 +65,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
                           onClick={() => handleBubbleClick(bubble.id)}
                         >
                           <span className="text-xs md:text-sm font-medium truncate max-w-full px-1">
-                            {bubble.name?.substring(0, 10) || bubble.topic.substring(0, 10)}
+                            {bubble.name?.substring(0, 10) || bubble.topic?.substring(0, 10)}
                           </span>
                         </div>
                       </HoverCardTrigger>
@@ -136,7 +124,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
                         onClick={() => handleBubbleClick(bubble.id)}
                       >
                         <span className="text-xs font-medium truncate max-w-full px-1">
-                          {bubble.name?.substring(0, 8) || bubble.topic.substring(0, 8)}
+                          {bubble.name?.substring(0, 8) || bubble.topic?.substring(0, 8)}
                         </span>
                       </div>
                     </TooltipTrigger>

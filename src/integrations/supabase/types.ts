@@ -56,7 +56,7 @@ export type Database = {
           id: string
           name: string | null
           reflect_count: number | null
-          size: number | null
+          size: string | null
           topic: string
           username: string | null
         }
@@ -68,7 +68,7 @@ export type Database = {
           id?: string
           name?: string | null
           reflect_count?: number | null
-          size?: number | null
+          size?: string | null
           topic: string
           username?: string | null
         }
@@ -80,7 +80,7 @@ export type Database = {
           id?: string
           name?: string | null
           reflect_count?: number | null
-          size?: number | null
+          size?: string | null
           topic?: string
           username?: string | null
         }
