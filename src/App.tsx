@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BubbleDetail from "./pages/BubbleDetail";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
                 <Route element={<Layout />}>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/bubble/:id" element={<BubbleDetail />} />
                 </Route>
               </Route>
               <Route path="*" element={<NotFound />} />

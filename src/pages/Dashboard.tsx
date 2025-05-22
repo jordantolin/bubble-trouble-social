@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -160,6 +160,8 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   
+  const navigate = useNavigate();
+  
   // Fetch bubbles from Supabase
   useEffect(() => {
     const fetchBubbles = async () => {
@@ -243,7 +245,11 @@ const Dashboard = () => {
           ) : (
             <div className="space-y-4">
               {bubbles.map((bubble) => (
-                <div key={bubble.id} className="p-4 border rounded-lg">
+                <div 
+                  key={bubble.id} 
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                  onClick={() => navigate(`/bubble/${bubble.id}`)}
+                >
                   <div className="flex items-center gap-3 mb-2">
                     <Avatar>
                       <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
