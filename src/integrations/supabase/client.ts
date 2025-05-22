@@ -19,3 +19,11 @@ supabase.channel('public:bubbles')
 supabase.channel('public:reflects')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'reflects' }, () => {})
   .subscribe();
+
+supabase.channel('public:gamification_profiles')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'gamification_profiles' }, () => {})
+  .subscribe();
+
+supabase.channel('public:bubble_messages')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'bubble_messages' }, () => {})
+  .subscribe();

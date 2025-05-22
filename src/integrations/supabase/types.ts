@@ -89,28 +89,34 @@ export type Database = {
       gamification_profiles: {
         Row: {
           bubble_points: number | null
+          last_active: string | null
           level: number | null
           message_points: number | null
           points: number | null
           reflection_points: number | null
+          streak_days: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           bubble_points?: number | null
+          last_active?: string | null
           level?: number | null
           message_points?: number | null
           points?: number | null
           reflection_points?: number | null
+          streak_days?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           bubble_points?: number | null
+          last_active?: string | null
           level?: number | null
           message_points?: number | null
           points?: number | null
           reflection_points?: number | null
+          streak_days?: number | null
           updated_at?: string | null
           user_id?: string
         }
