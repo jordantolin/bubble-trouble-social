@@ -17,8 +17,8 @@ import { Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 
-// Updated Topic categories with cleaner list based on the user's requirement
-const TOPIC_CATEGORIES = ["Technology", "Philosophy", "Art", "Science", "Society", "Spirituality", "Economy", "Mythology", "Mental Health", "Politics", "Environment", "Mysticism"];
+// New topic array as requested by the user
+const topics = ["Tech", "Art", "Life", "Gaming", "Music", "Science"];
 
 // Create Bubble Form Component
 const CreateBubbleForm = ({
@@ -121,7 +121,7 @@ const CreateBubbleForm = ({
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
           <SelectContent position="popper" className="bg-white z-[250] max-h-60 overflow-auto shadow-lg" sideOffset={5}>
-            {TOPIC_CATEGORIES.map(category => <SelectItem key={category} value={category} className="cursor-pointer hover:bg-gray-100">
+            {topics.map(category => <SelectItem key={category} value={category} className="cursor-pointer hover:bg-gray-100">
                 {category}
               </SelectItem>)}
           </SelectContent>
