@@ -5,6 +5,7 @@ import { OrbitControls, Text } from '@react-three/drei';
 import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
+import { useReflectionStatus } from '@/hooks/useReflectionStatus';
 
 interface BubbleProps {
   position: [number, number, number];
@@ -18,6 +19,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({ position, size, color, bubble }) 
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
   const navigate = useNavigate();
+  const { isReflected } = useReflectionStatus(bubble.id);
   
   useFrame((state) => {
     if (ref.current) {
@@ -50,9 +52,11 @@ const BubbleSphere: React.FC<BubbleProps> = ({ position, size, color, bubble }) 
         <meshStandardMaterial 
           color={color} 
           transparent 
-          opacity={0.8}
+          opacity={0.7}
           emissive={color}
-          emissiveIntensity={hovered ? 0.5 : 0.2}
+          emissiveIntensity={hovered ? 0.8 : isReflected ? 0.6 : 0.4}
+          metalness={0.3}
+          roughness={0.4}
         />
       </mesh>
       
@@ -65,7 +69,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({ position, size, color, bubble }) 
           anchorX="center"
           anchorY="middle"
         >
-          {bubble.topic}
+          {bubble.topic} ({bubble.reflect_count || 0})
         </Text>
       )}
     </group>
@@ -81,7 +85,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
     <div className="w-full h-full">
       <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
         <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} />
         <OrbitControls enableZoom={true} enablePan={false} />
         
         {bubbles.map((bubble, index) => {
@@ -92,17 +96,31 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
           const y = Math.sin(angle * 0.5) * 2;
           const z = Math.sin(angle) * radius;
           
-          // Determine size and color based on reflection count
+          // Determine size and color based on reflection count more dramatically
           const reflectCount = bubble.reflect_count || 0;
-          let size = 0.8;
-          let color = '#d69e2e';
           
-          if (reflectCount >= 10) {
-            size = 1.5;
-            color = '#e5c547';
+          // More dramatic size scaling
+          let size = 0.6 + (reflectCount * 0.08);
+          // Cap size at a reasonable maximum
+          size = Math.min(size, 2.2);
+          
+          // Vibrant color palette based on reflect count
+          let color;
+          if (reflectCount >= 15) {
+            // Bright gold for highly reflected bubbles
+            color = '#FFD700'; 
+          } else if (reflectCount >= 10) {
+            // Orange-gold
+            color = '#FFA500';
           } else if (reflectCount >= 5) {
-            size = 1.2;
-            color = '#f2d06f';
+            // Brighter yellow
+            color = '#FFDD33';
+          } else if (reflectCount >= 1) {
+            // Light yellow
+            color = '#FFF59D';
+          } else {
+            // Default yellow for no reflections
+            color = '#FFEB3B';
           }
           
           return (
