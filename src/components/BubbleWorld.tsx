@@ -1,25 +1,11 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
 import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { useReflectionStatus } from '@/hooks/useReflectionStatus';
-
-interface BubbleProps {
-  position: [number, number, number];
-  size: number;
-  color: string;
-  bubble: Bubble;
-  isTargetBubble: boolean;
-  onBubbleClick: (id: string) => void;
-  orbitRadius: number;
-  orbitSpeed: number;
-  orbitOffset: number;
-  bubbleIndex: number;
-  allBubblePositions: React.MutableRefObject<THREE.Vector3[]>;
-}
 
 // Camera animation controller
 const CameraController = ({ targetPosition, isAnimating, onAnimationComplete }: { 
@@ -140,6 +126,20 @@ const useRepulsionSystem = (
   
   return { calcBasePosition, applyRepulsion };
 };
+
+interface BubbleProps {
+  position: [number, number, number];
+  size: number;
+  color: string;
+  bubble: Bubble;
+  isTargetBubble: boolean;
+  onBubbleClick: (id: string) => void;
+  orbitRadius: number;
+  orbitSpeed: number;
+  orbitOffset: number;
+  bubbleIndex: number;
+  allBubblePositions: React.MutableRefObject<THREE.Vector3[]>;
+}
 
 // Enhanced bubble with improved text overlays
 const BubbleSphere: React.FC<BubbleProps> = ({ 
