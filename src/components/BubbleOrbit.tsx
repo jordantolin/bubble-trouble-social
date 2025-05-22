@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Tooltip,
@@ -18,49 +18,79 @@ interface BubbleOrbitProps {
 
 const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles }) => {
   const navigate = useNavigate();
+  const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
+  const navigationTimeoutRef = useRef<number | null>(null);
 
   // Combine all bubbles for display
   const allBubbles = [...mostReflectedBubbles, ...bubbles.filter(
     bubble => !mostReflectedBubbles.some(reflectedBubble => reflectedBubble.id === bubble.id)
   )];
 
-  // Handle bubble click
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        window.clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle bubble click with animation
   const handleBubbleClick = (id: string) => {
-    navigate(`/bubble/${id}`);
+    // Don't allow multiple animations to run at once
+    if (selectedBubbleId) {
+      return;
+    }
+    
+    // Set selected bubble to trigger animations
+    setSelectedBubbleId(id);
+    
+    // Navigate after animation completes
+    navigationTimeoutRef.current = window.setTimeout(() => {
+      navigate(`/bubble/${id}`);
+    }, 800); // Match this with animation duration
   };
 
   return (
     <div className="relative w-full h-[500px] md:h-[600px] overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 mb-8 border">
       <div className="absolute inset-0">
         {/* Center planet/sun for orbit system */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-bubble-yellow-light border-4 border-bubble-yellow flex items-center justify-center z-10 animate-pulse shadow-lg">
+        <div 
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-bubble-yellow-light border-4 border-bubble-yellow flex items-center justify-center z-10 animate-pulse shadow-lg ${
+            selectedBubbleId ? 'animate-fade-out' : ''
+          }`}
+        >
           <span className="text-xs md:text-sm font-medium text-bubble-yellow-dark">Bubble Orbit</span>
         </div>
         
         {/* Most reflected bubbles - inner orbit */}
-        <div className="orbit-container inner-orbit">
+        <div className={`orbit-container inner-orbit ${selectedBubbleId ? 'paused' : ''}`}>
           {mostReflectedBubbles.map((bubble, index) => {
             // Calculate position based on index for circular arrangement
             const angle = (index / mostReflectedBubbles.length) * 2 * Math.PI;
             const orbitRadius = 120; // inner orbit radius
             const delay = index * 0.5; // stagger animation
             const size = getBubbleSize(bubble.reflect_count || 0);
+            const isSelected = selectedBubbleId === bubble.id;
             
             return (
               <TooltipProvider key={bubble.id}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HoverCard>
+                    <HoverCard open={isSelected ? false : undefined}>
                       <HoverCardTrigger asChild>
                         <div 
-                          className={`absolute bubble animate-float cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)}`}
+                          className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${
+                            isSelected ? 'bubble-zoom-in' : 
+                            selectedBubbleId ? 'bubble-fade-out' : 'animate-float'
+                          }`}
                           style={{
                             width: `${size}px`,
                             height: `${size}px`,
                             left: `calc(50% + ${orbitRadius * Math.cos(angle)}px)`, 
                             top: `calc(50% + ${orbitRadius * Math.sin(angle)}px)`,
                             animationDelay: `${delay}s`,
-                            zIndex: bubble.reflect_count && bubble.reflect_count > 5 ? 5 : 1
+                            zIndex: isSelected ? 50 : (bubble.reflect_count && bubble.reflect_count > 5 ? 5 : 1)
                           }}
                           onClick={() => handleBubbleClick(bubble.id)}
                         >
@@ -98,7 +128,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
         </div>
         
         {/* Regular bubbles - outer orbit */}
-        <div className="orbit-container outer-orbit">
+        <div className={`orbit-container outer-orbit ${selectedBubbleId ? 'paused' : ''}`}>
           {bubbles
             .filter(bubble => !mostReflectedBubbles.some(mb => mb.id === bubble.id))
             .map((bubble, index) => {
@@ -107,19 +137,24 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
               const orbitRadius = 200; // outer orbit radius
               const delay = index * 0.3; // stagger animation
               const size = getBubbleSize(bubble.reflect_count || 0);
+              const isSelected = selectedBubbleId === bubble.id;
               
               return (
                 <TooltipProvider key={bubble.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div 
-                        className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)}`}
+                        className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${
+                          isSelected ? 'bubble-zoom-in' : 
+                          selectedBubbleId ? 'bubble-fade-out' : ''
+                        }`}
                         style={{
                           width: `${size}px`,
                           height: `${size}px`,
                           left: `calc(50% + ${orbitRadius * Math.cos(angle)}px)`, 
                           top: `calc(50% + ${orbitRadius * Math.sin(angle)}px)`,
-                          animationDelay: `${delay}s`
+                          animationDelay: `${delay}s`,
+                          zIndex: isSelected ? 50 : 1
                         }}
                         onClick={() => handleBubbleClick(bubble.id)}
                       >

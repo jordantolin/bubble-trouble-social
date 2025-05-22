@@ -99,12 +99,27 @@ export default {
 					'50%': {
 						transform: 'translateY(-10px)'
 					}
+				},
+				'bubble-zoom': {
+					'0%': {
+						transform: 'scale(1)',
+					},
+					'100%': {
+						transform: 'scale(1.5) translateY(-20px)',
+						boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25)'
+					}
+				},
+				'bubble-fade': {
+					from: { opacity: '1' },
+					to: { opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'bubble-float': 'bubble-float 3s ease-in-out infinite'
+				'bubble-float': 'bubble-float 3s ease-in-out infinite',
+				'bubble-zoom': 'bubble-zoom 0.8s ease-out forwards',
+				'bubble-fade': 'bubble-fade 0.5s ease-out forwards'
 			}
 		}
 	},
