@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,7 +126,7 @@ const CreateBubbleForm = ({
         <Label htmlFor="topic">Topic</Label>
         <Select 
           value={topic} 
-          onValueChange={setTopic} 
+          onValueChange={(value) => setTopic(value)} 
           disabled={isSubmitting || isSuccess}
         >
           <SelectTrigger 
@@ -165,7 +164,11 @@ const CreateBubbleForm = ({
             type="button" 
             disabled={isSubmitting || isSuccess} 
             className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
-            onClick={onClose}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
           >
             Cancel
           </Button>
@@ -344,13 +347,21 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
         <div className="flex items-center gap-3">
           <div className="relative w-64">
-            <input type="text" placeholder="Search bubbles or users..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-[#FFD500] rounded-md focus:ring-[#FFD500] focus:border-[#FFD500]" />
+            <input 
+              type="text" 
+              placeholder="Search bubbles or users..." 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-[#FFD500] rounded-md focus:ring-[#FFD500] focus:border-[#FFD500]" 
+            />
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#FFD500]" size={16} />
           </div>
-          <motion.div whileHover={{
-          scale: 1.05
-        }}>
-            <Button variant="outline" onClick={() => setShowFullView(!showFullView)} className="text-sm border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10">
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFullView(!showFullView)} 
+              className="text-sm border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
+            >
               {showFullView ? "Show List View" : "Show 3D View"}
             </Button>
           </motion.div>
@@ -358,11 +369,29 @@ const Dashboard = () => {
       </div>
       
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
-      {isLoading ? <div className="flex justify-center py-6">
+      {isLoading ? (
+        <div className="flex justify-center py-6">
           <div className="w-16 h-16 rounded-full border-4 border-t-[#FFD500] border-b-[#FFD500] border-r-transparent border-l-transparent animate-spin"></div>
-        </div> : <>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="sm:max-w-md">
+        </div>
+      ) : (
+        <>
+          <Dialog 
+            open={dialogOpen} 
+            onOpenChange={(open) => {
+              console.log("Dialog onOpenChange called with value:", open);
+              // Only allow the dialog to be closed, not auto-opened
+              if (!open) {
+                setDialogOpen(false);
+              }
+            }}
+          >
+            <DialogContent 
+              className="sm:max-w-md z-50"
+              onInteractOutside={(e) => {
+                // Prevent the dialog from closing when clicking outside
+                e.preventDefault();
+              }}
+            >
               <DialogHeader>
                 <DialogTitle>Create a New Bubble</DialogTitle>
                 <DialogDescription>
@@ -373,10 +402,17 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
           
-          {showFullView ? <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-[#FFF7DB] to-[#F9F3E5]">
-              <BubbleOrbit bubbles={filteredBubbles} mostReflectedBubbles={mostReflectedBubbles} onCreateBubble={handleCreateBubble} />
-            </div> : null}
-        </>}
+          {showFullView ? (
+            <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-[#FFF7DB] to-[#F9F3E5]">
+              <BubbleOrbit 
+                bubbles={filteredBubbles} 
+                mostReflectedBubbles={mostReflectedBubbles} 
+                onCreateBubble={handleCreateBubble} 
+              />
+            </div>
+          ) : null}
+        </>
+      )}
       
       {/* List View of Bubbles (now conditionally rendered) */}
       {!showFullView && <Card className="mt-8 border-[#F9C80E]/20">
