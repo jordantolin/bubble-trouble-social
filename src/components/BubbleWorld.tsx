@@ -74,10 +74,10 @@ const CoreSphere = () => {
       <sphereGeometry args={[1.2, 32, 32]} />
       <meshStandardMaterial 
         color="#FFD700" 
-        metalness={0.7}
-        roughness={0.2}
+        metalness={0.8}
+        roughness={0.1}
         emissive="#FFD700"
-        emissiveIntensity={0.4}
+        emissiveIntensity={0.5}
       />
     </mesh>
   );
@@ -122,10 +122,10 @@ const useRepulsionSystem = (
         const distance = direction.length();
         
         // Apply repulsion if bubbles are too close
-        if (distance < 2.5) {
+        if (distance < 3.0) {
           direction.normalize();
           // The closer they are, the stronger the repulsion
-          const repulsionStrength = (2.5 - distance) * 0.05;
+          const repulsionStrength = (3.0 - distance) * 0.08;
           direction.multiplyScalar(repulsionStrength);
           finalPosition.add(direction);
         }
@@ -195,17 +195,15 @@ const BubbleSphere: React.FC<BubbleProps> = ({
     onBubbleClick(bubble.id);
   };
   
-  // Calculate opacity based on whether this is the target bubble
-  const opacity = isTargetBubble ? 0.9 : hovered ? 0.85 : 0.8; 
-  // Fade out non-target bubbles when a target is selected
-  const fadeOpacity = isTargetBubble ? 1 : (isTargetBubble === false) ? 0.3 : 1;
-  
   // Calculate emissive intensity based on reflection count
   const reflectCount = bubble.reflect_count || 0;
-  const emissiveIntensity = hovered ? 0.8 : isReflected ? 0.6 : 
-                            (reflectCount >= 10 ? 0.7 : 
-                             reflectCount >= 5 ? 0.5 : 
+  const emissiveIntensity = hovered ? 0.9 : isReflected ? 0.7 : 
+                            (reflectCount >= 10 ? 0.8 : 
+                             reflectCount >= 5 ? 0.6 : 
                              reflectCount >= 1 ? 0.4 : 0.3);
+  
+  // Fade out non-target bubbles when a target is selected
+  const fadeOpacity = isTargetBubble ? 1 : (isTargetBubble === false) ? 0.3 : 1;
   
   return (
     <group>
@@ -220,15 +218,16 @@ const BubbleSphere: React.FC<BubbleProps> = ({
         <sphereGeometry args={[size, 32, 32]} />
         <meshPhysicalMaterial 
           color={color} 
-          transparent 
-          opacity={opacity * fadeOpacity}
           emissive={color}
           emissiveIntensity={emissiveIntensity}
           metalness={0.6}
           roughness={0.2}
-          clearcoat={0.5}
-          clearcoatRoughness={0.3}
-          envMapIntensity={0.8}
+          clearcoat={0.8}
+          clearcoatRoughness={0.2}
+          reflectivity={0.7}
+          transmission={0}
+          opacity={1.0}
+          envMapIntensity={1.0}
         />
       </mesh>
       
@@ -240,6 +239,13 @@ const BubbleSphere: React.FC<BubbleProps> = ({
           color="#ffffff"
           anchorX="center"
           anchorY="middle"
+          backgroundOpacity={0.8}
+          backgroundColor="#00000080"
+          paddingTop={0.1}
+          paddingBottom={0.1}
+          paddingLeft={0.2}
+          paddingRight={0.2}
+          borderRadius={0.1}
         >
           {bubble.topic} ({bubble.reflect_count || 0})
         </Text>
@@ -276,10 +282,10 @@ const BubbleTooltip: React.FC<{bubble: Bubble | null, position: {x: number, y: n
 const BubbleEnvironment = () => {
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[10, 10, 10]} intensity={1.5} />
-      <pointLight position={[-10, -10, -10]} intensity={1} color="#FFE166" />
-      <fog attach="fog" args={['#000', 15, 40]} />
+      <ambientLight intensity={0.8} />
+      <pointLight position={[10, 10, 10]} intensity={1.8} color="#ffffff" />
+      <pointLight position={[-10, -10, -10]} intensity={1.2} color="#FFE166" />
+      <fog attach="fog" args={['#000', 20, 45]} />
     </>
   );
 };
@@ -376,27 +382,22 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
           const reflectCount = bubble.reflect_count || 0;
           
           // More dramatic size scaling
-          let size = 0.6 + (reflectCount * 0.12);
+          let size = 0.6 + (reflectCount * 0.15);
           // Cap size at a reasonable maximum
           size = Math.min(size, 2.5);
           
           // Vibrant color palette based on reflect count
           let color;
           if (reflectCount >= 15) {
-            // Bright gold for highly reflected bubbles
-            color = '#FFD700'; 
+            color = '#FFD700'; // Bright gold for highly reflected bubbles
           } else if (reflectCount >= 10) {
-            // Orange-gold
-            color = '#FFA500';
+            color = '#FFC300'; // Gold
           } else if (reflectCount >= 5) {
-            // Brighter yellow
-            color = '#FFDD33';
+            color = '#FF9900'; // Orange
           } else if (reflectCount >= 1) {
-            // Light yellow
-            color = '#FFF59D';
+            color = '#FFBB00'; // Yellow-orange
           } else {
-            // Default yellow for no reflections
-            color = '#FFEB3B';
+            color = '#FFD700'; // Default yellow
           }
           
           // Configure event handlers for tooltip

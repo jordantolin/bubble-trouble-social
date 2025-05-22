@@ -127,29 +127,10 @@ const MainLayout = () => {
           </div>
         </header>
 
-        {/* Main content area with BubbleWorld */}
+        {/* Main content area with BubbleWorld - no floating feed */}
         <main className="flex-1 relative overflow-hidden">
           <BubbleWorld bubbles={bubbles} />
         </main>
-
-        {/* Bottom floating feed */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
-            <div className="font-medium mb-2">Recent Bubbles</div>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {bubbles.slice(0, 5).map((bubble) => (
-                <div key={bubble.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: bubble.reflect_count && bubble.reflect_count > 5 ? '#e5c547' : '#d69e2e' }}></div>
-                  <div className="flex-1">
-                    <div className="font-medium">{bubble.topic}</div>
-                    <div className="text-xs text-slate-500">{bubble.reflect_count} reflections</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-3">View All</Button>
-          </div>
-        </div>
       </div>
     </div>
   );
