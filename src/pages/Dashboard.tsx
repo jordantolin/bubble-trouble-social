@@ -382,7 +382,7 @@ const Dashboard = () => {
             }}
           >
             <DialogContent 
-              className="sm:max-w-md z-50"
+              className="sm:max-w-md"
             >
               <DialogHeader>
                 <DialogTitle>Create a New Bubble</DialogTitle>
