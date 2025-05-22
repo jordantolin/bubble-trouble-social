@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -398,7 +399,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
       const orbitRadius = 3 + (bubbleIndex % 5);
       const orbitOffset = bubbleIndex * 0.5;
       const x = Math.cos(orbitOffset) * orbitRadius;
-      const y = Math.sin(index * 0.7) * 3.5; // More vertical distribution
+      const y = Math.sin(bubbleIndex * 0.7) * 3.5; // Fixed: replaced 'index' with 'bubbleIndex'
       const z = Math.sin(orbitOffset) * orbitRadius;
       
       // Set the target position for camera animation
