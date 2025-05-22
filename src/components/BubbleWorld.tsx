@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -5,6 +6,9 @@ import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { useReflectionStatus } from '@/hooks/useReflectionStatus';
+
+// Extend any non-native THREE.js elements that need to be used as JSX
+extend({ Text: Text });
 
 // Camera animation controller
 const CameraController = ({ targetPosition, isAnimating, onAnimationComplete }: { 
