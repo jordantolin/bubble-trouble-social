@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ const CreateBubbleForm = ({
   const {
     toast
   } = useToast();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic || !name) {
@@ -105,57 +107,81 @@ const CreateBubbleForm = ({
       setIsSubmitting(false);
     }
   };
-  return <form onSubmit={handleSubmit} className="space-y-4">
+  
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Bubble Name</Label>
-        <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Give your bubble a name" className="border-[#FFD500] focus:ring-[#FFD500]" required disabled={isSubmitting || isSuccess} />
+        <Input 
+          id="name" 
+          value={name} 
+          onChange={e => setName(e.target.value)} 
+          placeholder="Give your bubble a name" 
+          className="border-[#FFD500] focus:ring-[#FFD500]" 
+          required 
+          disabled={isSubmitting || isSuccess} 
+        />
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
-        <Select value={topic} onValueChange={value => {
-        console.log("Topic selected:", value);
-        setTopic(value);
-      }} disabled={isSubmitting || isSuccess}>
-          <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500] cursor-pointer">
+        <Select 
+          value={topic} 
+          onValueChange={setTopic} 
+          disabled={isSubmitting || isSuccess}
+        >
+          <SelectTrigger 
+            id="topic" 
+            className="w-full border-[#FFD500] focus:ring-[#FFD500]"
+          >
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
-          <SelectContent position="popper" className="bg-white z-[250] max-h-60 overflow-auto shadow-lg" sideOffset={5}>
-            {topics.map(category => <SelectItem key={category} value={category} className="cursor-pointer hover:bg-gray-100">
+          <SelectContent className="bg-white z-[250]">
+            {topics.map(category => (
+              <SelectItem key={category} value={category}>
                 {category}
-              </SelectItem>)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="description">Description (Optional)</Label>
-        <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Add more details about your bubble" className="min-h-[100px] border-[#FFD500] focus:ring-[#FFD500]" disabled={isSubmitting || isSuccess} />
+        <Textarea 
+          id="description" 
+          value={description} 
+          onChange={e => setDescription(e.target.value)} 
+          placeholder="Add more details about your bubble" 
+          className="min-h-[100px] border-[#FFD500] focus:ring-[#FFD500]" 
+          disabled={isSubmitting || isSuccess} 
+        />
       </div>
       
       <div className="flex justify-end space-x-2 pt-2">
-        <motion.div whileHover={{
-        scale: 1.03
-      }} whileTap={{
-        scale: 0.97
-      }}>
-          <DialogClose asChild>
-            <Button variant="outline" type="button" disabled={isSubmitting || isSuccess} className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10">
-              Cancel
-            </Button>
-          </DialogClose>
+        <motion.div whileHover={{scale: 1.03}} whileTap={{scale: 0.97}}>
+          <Button 
+            variant="outline" 
+            type="button" 
+            disabled={isSubmitting || isSuccess} 
+            className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
         </motion.div>
-        <motion.div whileHover={{
-        scale: 1.03
-      }} whileTap={{
-        scale: 0.97
-      }}>
-          <Button type="submit" disabled={isSubmitting || isSuccess} className={`bg-[#FFD500] hover:bg-[#F5C000] text-white relative ${isSuccess ? 'animate-pulse' : ''}`}>
+        <motion.div whileHover={{scale: 1.03}} whileTap={{scale: 0.97}}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || isSuccess} 
+            className={`bg-[#FFD500] hover:bg-[#F5C000] text-white relative ${isSuccess ? 'animate-pulse' : ''}`}
+          >
             {isSubmitting ? "Creating..." : isSuccess ? "Created!" : "Create Bubble"}
           </Button>
         </motion.div>
       </div>
-    </form>;
+    </form>
+  );
 };
 
 // Empty State Component
@@ -302,14 +328,17 @@ const Dashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [toast, searchTerm]);
+  
   const handleCloseDialog = () => {
     console.log("Dialog closed manually");
     setDialogOpen(false);
   };
+  
   const handleCreateBubble = () => {
     console.log("Opening create bubble dialog");
     setDialogOpen(true);
   };
+  
   return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
@@ -332,11 +361,7 @@ const Dashboard = () => {
       {isLoading ? <div className="flex justify-center py-6">
           <div className="w-16 h-16 rounded-full border-4 border-t-[#FFD500] border-b-[#FFD500] border-r-transparent border-l-transparent animate-spin"></div>
         </div> : <>
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
-            console.log("Dialog state changed:", open);
-            // Only update the state, don't toggle it back
-            setDialogOpen(open);
-          }}>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create a New Bubble</DialogTitle>
@@ -389,4 +414,5 @@ const Dashboard = () => {
         </Card>}
     </div>;
 };
+
 export default Dashboard;
