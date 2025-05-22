@@ -12,24 +12,30 @@ export type Database = {
       bubble_messages: {
         Row: {
           bubble_id: string | null
+          content: string | null
           created_at: string | null
           id: string
           message: string
           user_id: string | null
+          username: string | null
         }
         Insert: {
           bubble_id?: string | null
+          content?: string | null
           created_at?: string | null
           id?: string
           message: string
           user_id?: string | null
+          username?: string | null
         }
         Update: {
           bubble_id?: string | null
+          content?: string | null
           created_at?: string | null
           id?: string
           message?: string
           user_id?: string | null
+          username?: string | null
         }
         Relationships: [
           {
@@ -39,46 +45,46 @@ export type Database = {
             referencedRelation: "bubbles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "bubble_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       bubbles: {
         Row: {
           author_id: string | null
           created_at: string | null
+          description: string | null
+          expires_at: string | null
           id: string
+          name: string | null
           reflect_count: number | null
+          size: number | null
           topic: string
+          username: string | null
         }
         Insert: {
           author_id?: string | null
           created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
           id?: string
+          name?: string | null
           reflect_count?: number | null
+          size?: number | null
           topic: string
+          username?: string | null
         }
         Update: {
           author_id?: string | null
           created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
           id?: string
+          name?: string | null
           reflect_count?: number | null
+          size?: number | null
           topic?: string
+          username?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "bubbles_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       gamification_profiles: {
         Row: {
@@ -108,34 +114,23 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "gamification_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reflects: {
         Row: {
           bubble_id: string | null
-          content: string
           created_at: string | null
           id: string
           username: string | null
         }
         Insert: {
           bubble_id?: string | null
-          content: string
           created_at?: string | null
           id?: string
           username?: string | null
         }
         Update: {
           bubble_id?: string | null
-          content?: string
           created_at?: string | null
           id?: string
           username?: string | null

@@ -1,105 +1,98 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Star, StarOff } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useReflectionStatus } from '@/hooks/useReflectionStatus';
 
 interface ReflectButtonProps {
   bubbleId: string;
   reflectCount: number;
-  initialReflected?: boolean;
-  onReflect?: () => void;
 }
 
-const ReflectButton = ({
-  bubbleId,
-  reflectCount,
-  initialReflected = false,
-  onReflect
-}: ReflectButtonProps) => {
-  const [isReflected, setIsReflected] = useState(initialReflected);
-  const [isLoading, setIsLoading] = useState(false);
-  const [count, setCount] = useState(reflectCount);
+const ReflectButton = ({ bubbleId, reflectCount }: ReflectButtonProps) => {
+  const [isReflecting, setIsReflecting] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const { isReflected, isLoading } = useReflectionStatus(bubbleId);
 
-  const handleReflect = async () => {
-    if (!isAuthenticated || !user) {
+  const handleReflect = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation to detail page when clicking the button
+    
+    if (!user?.username) {
       toast({
         title: "Authentication required",
-        description: "Please log in to reflect this bubble",
+        description: "Please login to reflect on bubbles",
         variant: "destructive",
       });
       return;
     }
-
+    
     if (isReflected) {
-      return;
+      return; // Already reflected
     }
-
-    setIsLoading(true);
-
+    
+    setIsReflecting(true);
+    
     try {
+      // Insert new reflection
       const { error } = await supabase
         .from("reflects")
         .insert({
           bubble_id: bubbleId,
           username: user.username,
         });
-
+      
       if (error) {
-        if (error.code === "23505") {
+        if (error.code === '23505') { // Unique violation
           toast({
             title: "Already reflected",
-            description: "You have already reflected this bubble",
+            description: "You've already reflected on this bubble",
           });
         } else {
           throw error;
         }
       } else {
-        setIsReflected(true);
-        setCount(prev => prev + 1);
         toast({
-          title: "Bubble reflected",
-          description: "Your reflection has been added",
+          title: "Reflected!",
+          description: "You've reflected on this bubble",
         });
-        if (onReflect) onReflect();
       }
     } catch (error) {
-      console.error("Error reflecting bubble:", error);
+      console.error("Error reflecting on bubble:", error);
       toast({
-        title: "Reflection failed",
-        description: "Failed to reflect bubble. Please try again.",
+        title: "Error",
+        description: "Failed to reflect on bubble",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsReflecting(false);
     }
   };
-
+  
+  if (isLoading) {
+    return (
+      <Button variant="outline" size="sm" disabled>
+        <Star className="h-4 w-4 mr-1" />
+        <span>{reflectCount}</span>
+      </Button>
+    );
+  }
+  
   return (
     <Button
-      onClick={handleReflect}
-      disabled={isReflected || isLoading || !isAuthenticated}
       variant={isReflected ? "secondary" : "outline"}
       size="sm"
-      className="gap-2"
+      onClick={handleReflect}
+      disabled={isReflecting || isReflected}
+      className={isReflected ? "bg-bubble-yellow-light text-bubble-yellow-dark border-bubble-yellow hover:bg-bubble-yellow-light" : ""}
     >
-      {isReflected ? (
-        <>
-          <Star className="h-4 w-4 text-bubble-yellow-dark fill-current" />
-          <span>Reflected</span>
-          {count > 0 && <span className="text-xs">({count})</span>}
-        </>
-      ) : (
-        <>
-          <StarOff className="h-4 w-4" />
-          <span>Reflect</span>
-          {count > 0 && <span className="text-xs">({count})</span>}
-        </>
-      )}
+      <Star 
+        className={`h-4 w-4 mr-1 ${isReflected ? "fill-bubble-yellow-dark" : ""}`} 
+      />
+      <span>{reflectCount}</span>
     </Button>
   );
 };

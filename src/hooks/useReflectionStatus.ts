@@ -21,7 +21,7 @@ export const useReflectionStatus = (bubbleId: string) => {
           .select("*")
           .eq("bubble_id", bubbleId)
           .eq("username", user.username)
-          .single();
+          .maybeSingle();
 
         if (error && error.code !== "PGRST116") {
           console.error("Error checking reflection status:", error);

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -16,25 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import BubbleItem from "@/components/BubbleItem";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
 import { useReflectionStatus } from "@/hooks/useReflectionStatus";
-
-// Placeholder component for future 3D integration
-const ThreeDPlaceholder = () => (
-  <div className="relative h-48 rounded-lg bg-gradient-to-r from-bubble-yellow-light to-bubble-yellow border border-dashed border-bubble-yellow-dark p-4 flex items-center justify-center mb-6">
-    <div className="text-center">
-      <p className="text-sm font-medium text-bubble-yellow-dark mb-2">
-        3D Content Placeholder
-      </p>
-      <p className="text-xs text-gray-500">
-        Future integration for interactive 3D bubbles
-      </p>
-    </div>
-  </div>
-);
+import "../components/BubbleOrbit.css";
 
 // Type for bubble data from Supabase
 interface Bubble {
@@ -253,52 +239,6 @@ const Dashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [toast]);
-
-  // Render a bubble item
-  const renderBubbleItem = (bubble: Bubble, isReflected = false) => {
-    // Calculate a size multiplier based on reflection count
-    const sizeClass = bubble.reflect_count && bubble.reflect_count > 10 
-      ? "border-2 border-bubble-yellow-dark bg-bubble-yellow-light" 
-      : bubble.reflect_count && bubble.reflect_count > 5
-        ? "border border-bubble-yellow" 
-        : "";
-    
-    return (
-      <div 
-        key={bubble.id} 
-        className={`p-4 border rounded-lg hover:bg-gray-50 transition ${sizeClass}`}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium">{bubble.name}</h3>
-              <p className="text-sm text-gray-500">By {bubble.username}</p>
-            </div>
-          </div>
-          <ReflectButton 
-            bubbleId={bubble.id} 
-            reflectCount={bubble.reflect_count || 0}
-          />
-        </div>
-        <div 
-          className="space-y-2 cursor-pointer"
-          onClick={() => navigate(`/bubble/${bubble.id}`)}
-        >
-          <p className="text-sm font-medium">Topic: {bubble.topic}</p>
-          {bubble.description && (
-            <p className="text-sm text-gray-600">{bubble.description}</p>
-          )}
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Created: {format(new Date(bubble.created_at), 'PPp')}</span>
-            <span>Reflections: {bubble.reflect_count || 0}</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
   
   return (
     <div className="space-y-6">
@@ -320,47 +260,60 @@ const Dashboard = () => {
         </Dialog>
       </div>
       
-      <ThreeDPlaceholder />
-      
-      {/* Most Reflected Bubbles Section */}
-      {mostReflectedBubbles.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Most Reflected</CardTitle>
-            <CardDescription>
-              Bubbles that have resonated most with the community
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mostReflectedBubbles.map((bubble) => renderBubbleItem(bubble, true))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* New Animated Bubble Orbit View */}
+      {isLoading ? (
+        <div className="flex justify-center py-6">
+          <p>Loading bubbles...</p>
+        </div>
+      ) : bubbles.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-gray-500">No bubbles found. Create the first one!</p>
+        </div>
+      ) : (
+        <BubbleOrbit bubbles={bubbles} mostReflectedBubbles={mostReflectedBubbles} />
       )}
       
-      {/* Latest Bubbles Section */}
-      <Card>
+      {/* List View of Bubbles (Alternative) */}
+      <Card className="mt-8">
         <CardHeader className="pb-3">
-          <CardTitle>Latest Bubbles</CardTitle>
+          <CardTitle>All Bubbles</CardTitle>
           <CardDescription>
-            Ephemeral content that will pop soon. Catch them while you can!
+            All active bubbles listed in chronological order
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-6">
-              <p>Loading bubbles...</p>
-            </div>
-          ) : bubbles.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500">No bubbles found. Create the first one!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {bubbles.map((bubble) => renderBubbleItem(bubble))}
-            </div>
-          )}
+          <div className="space-y-4">
+            {bubbles.map((bubble) => (
+              <div 
+                key={bubble.id} 
+                className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                onClick={() => navigate(`/bubble/${bubble.id}`)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-medium">{bubble.name}</h3>
+                      <p className="text-sm text-gray-500">By {bubble.username}</p>
+                    </div>
+                  </div>
+                  <ReflectButton 
+                    bubbleId={bubble.id} 
+                    reflectCount={bubble.reflect_count || 0}
+                  />
+                </div>
+                <p className="text-sm font-medium">Topic: {bubble.topic}</p>
+                {bubble.description && (
+                  <p className="text-sm text-gray-600">{bubble.description}</p>
+                )}
+                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                  <span>Reflections: {bubble.reflect_count || 0}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
       
