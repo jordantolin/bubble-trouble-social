@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -274,7 +273,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             position={[0, verticalOffset, 0]}
             fontSize={textScaleFactor}
             color="white"
-            font="/fonts/Inter-Regular.woff"
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.04}
@@ -291,7 +289,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             position={[0, verticalOffset - textScaleFactor * 1.2, 0]}
             fontSize={textScaleFactor * 0.7}
             color="white"
-            font="/fonts/Inter-Regular.woff"
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.02}
@@ -306,7 +303,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             position={[0, verticalOffset - textScaleFactor * 2.4, 0]}
             fontSize={countTextSize}
             color="white"
-            font="/fonts/Inter-Regular.woff"
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.02}
