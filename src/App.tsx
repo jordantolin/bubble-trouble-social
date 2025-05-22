@@ -127,7 +127,7 @@ const MainLayout = () => {
           </div>
         </header>
 
-        {/* Main content area with BubbleWorld - no floating feed */}
+        {/* Main content area with immersive BubbleWorld - no overlays */}
         <main className="flex-1 relative overflow-hidden">
           <BubbleWorld bubbles={bubbles} />
         </main>

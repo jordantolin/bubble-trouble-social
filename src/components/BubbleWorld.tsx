@@ -1,12 +1,11 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
+import { OrbitControls, Text, Billboard } from '@react-three/drei';
 import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { useReflectionStatus } from '@/hooks/useReflectionStatus';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Star } from 'lucide-react';
 
 interface BubbleProps {
   position: [number, number, number];
@@ -140,6 +139,56 @@ const useRepulsionSystem = (
   return { calcBasePosition, applyRepulsion };
 };
 
+// Star icon component (3D)
+const StarIcon = ({ position, size }: { position: [number, number, number], size: number }) => {
+  return (
+    <mesh position={position}>
+      <planeGeometry args={[size * 0.8, size * 0.8]} />
+      <meshBasicMaterial 
+        color="#FFD700" 
+        transparent
+        opacity={1}
+        side={THREE.DoubleSide}
+      >
+        <canvasTexture 
+          attach="map" 
+          image={(() => {
+            // Create canvas to draw star icon
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = '#FFD700';
+              ctx.beginPath();
+              // Draw a simple star shape
+              const cx = 32;
+              const cy = 32;
+              const spikes = 5;
+              const outerRadius = 30;
+              const innerRadius = 15;
+              
+              for (let i = 0; i < spikes * 2; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = Math.PI / spikes * i;
+                const x = cx + Math.cos(angle) * radius;
+                const y = cy + Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+              }
+              
+              ctx.closePath();
+              ctx.fill();
+            }
+            return canvas;
+          })()}
+        />
+      </meshBasicMaterial>
+    </mesh>
+  );
+};
+
+// Enhanced bubble with text overlays
 const BubbleSphere: React.FC<BubbleProps> = ({ 
   position, 
   size, 
@@ -202,8 +251,9 @@ const BubbleSphere: React.FC<BubbleProps> = ({
                              reflectCount >= 5 ? 0.6 : 
                              reflectCount >= 1 ? 0.4 : 0.3);
   
-  // Fade out non-target bubbles when a target is selected
-  const fadeOpacity = isTargetBubble ? 1 : (isTargetBubble === false) ? 0.3 : 1;
+  // Calculate the text size based on bubble size
+  const textScaleFactor = size * 0.25;
+  const countTextSize = textScaleFactor * 0.8;
   
   return (
     <group>
@@ -222,33 +272,74 @@ const BubbleSphere: React.FC<BubbleProps> = ({
           emissiveIntensity={emissiveIntensity}
           metalness={0.6}
           roughness={0.2}
-          clearcoat={0.8}
+          clearcoat={0.8} 
           clearcoatRoughness={0.2}
           reflectivity={0.7}
-          transmission={0}
           opacity={1.0}
           envMapIntensity={1.0}
         />
       </mesh>
       
-      {/* Show label when hovered */}
-      {hovered && (
+      {/* Billboard for always facing camera with text content */}
+      <Billboard
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
+        position={[ref.current?.position.x || 0, (ref.current?.position.y || 0), ref.current?.position.z || 0]}
+      >
+        {/* Topic text (centered) */}
         <Text
-          position={[ref.current?.position.x || 0, (ref.current?.position.y || 0) + size + 0.3, ref.current?.position.z || 0]}
-          fontSize={0.2}
-          color="#ffffff"
+          position={[0, size * 0.2, 0]}
+          fontSize={textScaleFactor}
+          font="/fonts/Inter-Bold.woff"
+          color="white"
           anchorX="center"
           anchorY="middle"
-          backgroundOpacity={0.8}
-          backgroundColor="#00000080"
-          paddingTop={0.1}
-          paddingBottom={0.1}
-          paddingLeft={0.2}
-          paddingRight={0.2}
-          borderRadius={0.1}
+          outlineWidth={0.02}
+          outlineColor="#000000"
+          maxWidth={size * 4}
         >
-          {bubble.topic} ({bubble.reflect_count || 0})
+          {bubble.topic}
         </Text>
+        
+        {/* Author/username (smaller) */}
+        <Text
+          position={[0, 0, 0]}
+          fontSize={textScaleFactor * 0.7}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="#000000"
+        >
+          {bubble.username || "Anonymous"}
+        </Text>
+        
+        {/* Reflection count with star icon */}
+        <group position={[0, -size * 0.5, 0]}>
+          <StarIcon position={[-countTextSize * 1.5, 0, 0]} size={countTextSize * 1.2} />
+          <Text
+            position={[0, 0, 0]}
+            fontSize={countTextSize}
+            font="/fonts/Inter-Bold.woff"
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.02}
+            outlineColor="#000000"
+          >
+            {bubble.reflect_count || 0}
+          </Text>
+        </group>
+      </Billboard>
+      
+      {/* Background glow effect */}
+      {hovered && (
+        <mesh position={[ref.current?.position.x || 0, ref.current?.position.y || 0, ref.current?.position.z || 0]}>
+          <sphereGeometry args={[size * 1.2, 16, 16]} />
+          <meshBasicMaterial color={color} transparent opacity={0.15} />
+        </mesh>
       )}
     </group>
   );
