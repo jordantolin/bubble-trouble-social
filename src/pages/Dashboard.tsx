@@ -340,7 +340,15 @@ const Dashboard = () => {
         }
         setDialogOpen(open);
       }}>
-            
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create a New Bubble</DialogTitle>
+                <DialogDescription>
+                  Share your thoughts and start a conversation
+                </DialogDescription>
+              </DialogHeader>
+              <CreateBubbleForm onClose={handleCloseDialog} />
+            </DialogContent>
           </Dialog>
           
           {showFullView ? <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-[#FFF7DB] to-[#F9F3E5]">
