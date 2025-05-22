@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
-import { useReflectionStatus } from "@/hooks/useReflectionStatus";
-import "../components/BubbleOrbit.css";
 import { Bubble } from "@/types/bubble";
 
 // Create Bubble Form Component
@@ -233,23 +231,9 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Create New Bubble</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create a New Bubble</DialogTitle>
-              <DialogDescription>
-                Add a new topic for discussion. Bubbles last for 7 days before they pop!
-              </DialogDescription>
-            </DialogHeader>
-            <CreateBubbleForm onClose={() => setDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
       </div>
       
-      {/* New Animated Bubble Orbit View */}
+      {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
       {isLoading ? (
         <div className="flex justify-center py-6">
           <p>Loading bubbles...</p>
@@ -259,7 +243,24 @@ const Dashboard = () => {
           <p className="text-gray-500">No bubbles found. Create the first one!</p>
         </div>
       ) : (
-        <BubbleOrbit bubbles={bubbles} mostReflectedBubbles={mostReflectedBubbles} />
+        <>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create a New Bubble</DialogTitle>
+                <DialogDescription>
+                  Add a new topic for discussion. Bubbles last for 7 days before they pop!
+                </DialogDescription>
+              </DialogHeader>
+              <CreateBubbleForm onClose={() => setDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+          <BubbleOrbit 
+            bubbles={bubbles} 
+            mostReflectedBubbles={mostReflectedBubbles} 
+            onCreateBubble={() => setDialogOpen(true)} 
+          />
+        </>
       )}
       
       {/* List View of Bubbles (Alternative) */}

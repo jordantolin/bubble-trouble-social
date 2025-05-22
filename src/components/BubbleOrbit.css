@@ -25,6 +25,7 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transform-origin: center center;
+  cursor: pointer;
 }
 
 .bubble:hover:not(.bubble-zoom-in):not(.bubble-fade-out) {
@@ -75,10 +76,10 @@
 
 @keyframes orbit {
   from {
-    transform: rotate(0deg) translateX(150px) rotate(0deg);
+    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
   }
   to {
-    transform: rotate(360deg) translateX(150px) rotate(-360deg);
+    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
   }
 }
 
@@ -142,13 +143,42 @@
 
 /* Inner orbit animation */
 .inner-orbit .bubble {
+  --orbit-radius: 150px;
   animation: orbit 30s linear infinite;
 }
 
 /* Outer orbit animation */
 .outer-orbit .bubble {
+  --orbit-radius: 220px;
   animation: orbit 60s linear infinite;
   animation-direction: reverse;
+}
+
+/* Create bubble button floating styles */
+.create-bubble-button {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 16%;
+  left: 16%;
+  background: linear-gradient(145deg, #FFE166, #FFD000);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 208, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 40;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  animation: float 4s ease-in-out infinite;
+}
+
+.create-bubble-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(255, 208, 0, 0.6);
 }
 
 /* Responsive adjustments */
@@ -158,11 +188,20 @@
   }
   
   .inner-orbit .bubble {
+    --orbit-radius: 120px;
     animation: orbit 25s linear infinite;
   }
   
   .outer-orbit .bubble {
+    --orbit-radius: 180px;
     animation: orbit 40s linear infinite;
+  }
+  
+  .create-bubble-button {
+    width: 50px;
+    height: 50px;
+    top: 10%;
+    left: 10%;
   }
   
   /* Adjust zoom-in animation for mobile */

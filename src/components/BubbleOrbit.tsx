@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -10,16 +11,27 @@ import {
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bubble } from "@/types/bubble";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import "./BubbleOrbit.css";
 
 interface BubbleOrbitProps {
   bubbles: Bubble[];
   mostReflectedBubbles: Bubble[];
+  onCreateBubble?: () => void;
 }
 
-const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles }) => {
+const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles, onCreateBubble }) => {
   const navigate = useNavigate();
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
   const [rippleBubbleId, setRippleBubbleId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigationTimeoutRef = useRef<number | null>(null);
 
   // Combine all bubbles for display
@@ -63,6 +75,24 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
   return (
     <div className="relative w-full h-[500px] md:h-[600px] overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 mb-8 border">
       <div className="absolute inset-0">
+        {/* Floating "+" button for creating new bubbles */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <div className="create-bubble-button">
+              <Plus size={28} strokeWidth={3} />
+            </div>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a New Bubble</DialogTitle>
+              <DialogDescription>
+                Add a new topic for discussion. Bubbles last for 7 days before they pop!
+              </DialogDescription>
+            </DialogHeader>
+            {/* The content will be provided by the Dashboard component */}
+          </DialogContent>
+        </Dialog>
+        
         {/* Center planet/sun for orbit system */}
         <div 
           className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-bubble-yellow-light border-4 border-bubble-yellow flex items-center justify-center z-10 animate-pulse shadow-lg ${
@@ -75,9 +105,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
         {/* Most reflected bubbles - inner orbit */}
         <div className={`orbit-container inner-orbit ${selectedBubbleId ? 'paused' : ''}`}>
           {mostReflectedBubbles.map((bubble, index) => {
-            // Calculate position based on index for circular arrangement
-            const angle = (index / mostReflectedBubbles.length) * 2 * Math.PI;
-            const orbitRadius = 120; // inner orbit radius
+            // Calculate delay based on index for staggered animation
             const delay = index * 0.5; // stagger animation
             const size = getBubbleSize(bubble.reflect_count || 0);
             const isSelected = selectedBubbleId === bubble.id;
@@ -90,15 +118,13 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
                     <HoverCard open={isSelected ? false : undefined}>
                       <HoverCardTrigger asChild>
                         <div 
-                          className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
+                          className={`bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
                             isSelected ? 'bubble-zoom-in' : 
                             selectedBubbleId ? 'bubble-fade-out' : 'animate-float'
                           } ${hasRipple ? 'animate-ripple' : ''}`}
                           style={{
                             width: `${size}px`,
                             height: `${size}px`,
-                            left: `calc(50% + ${orbitRadius * Math.cos(angle)}px)`, 
-                            top: `calc(50% + ${orbitRadius * Math.sin(angle)}px)`,
                             animationDelay: `${delay}s`,
                             zIndex: isSelected ? 50 : (bubble.reflect_count && bubble.reflect_count > 5 ? 5 : 1)
                           }}
@@ -142,9 +168,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
           {bubbles
             .filter(bubble => !mostReflectedBubbles.some(mb => mb.id === bubble.id))
             .map((bubble, index) => {
-              // Calculate position based on index for circular arrangement
-              const angle = (index / bubbles.length) * 2 * Math.PI;
-              const orbitRadius = 200; // outer orbit radius
+              // Calculate delay based on index for staggered animation
               const delay = index * 0.3; // stagger animation
               const size = getBubbleSize(bubble.reflect_count || 0);
               const isSelected = selectedBubbleId === bubble.id;
@@ -155,15 +179,13 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div 
-                        className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
+                        className={`bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
                           isSelected ? 'bubble-zoom-in' : 
                           selectedBubbleId ? 'bubble-fade-out' : ''
                         } ${hasRipple ? 'animate-ripple' : ''}`}
                         style={{
                           width: `${size}px`,
                           height: `${size}px`,
-                          left: `calc(50% + ${orbitRadius * Math.cos(angle)}px)`, 
-                          top: `calc(50% + ${orbitRadius * Math.sin(angle)}px)`,
                           animationDelay: `${delay}s`,
                           zIndex: isSelected ? 50 : 1
                         }}
