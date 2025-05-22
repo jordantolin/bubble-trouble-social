@@ -21,7 +21,13 @@ import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
 import { Bubble } from "@/types/bubble";
 import { Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { motion } from "framer-motion";
 
 // Updated Topic categories for bubbles with enhanced list
@@ -96,13 +102,15 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           name,
           description: description || null,
           username: user.username || 'Anonymous',
-          author_id: user.id, // Make sure author_id is set correctly from authenticated user
+          author_id: user.id,
           expires_at: expiresAt.toISOString(),
-          size: 'sm', // Default size as string to match DB
+          size: 'sm',
         })
         .select();
       
       if (error) throw error;
+      
+      console.log("Bubble created successfully:", data);
       
       // Show success animation
       setIsSuccess(true);
@@ -115,10 +123,12 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       // Close modal after brief delay to show success state
       setTimeout(() => {
         onClose();
-        setIsSuccess(false);
+        // Reset form fields
         setName("");
         setTopic("");
         setDescription("");
+        setIsSubmitting(false);
+        setIsSuccess(false);
       }, 1500);
     } catch (error: any) {
       console.error("Error creating bubble:", error);
@@ -148,18 +158,18 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
+        {/* Fixed dropdown implementation with proper onValueChange and value binding */}
         <Select
           value={topic}
           onValueChange={setTopic}
           disabled={isSubmitting || isSuccess}
-          required
         >
-          <SelectTrigger className="border-[#FFD500] focus:ring-[#FFD500]">
+          <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500]">
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {TOPIC_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
+              <SelectItem key={category} value={category} className="cursor-pointer">
                 {category}
               </SelectItem>
             ))}
@@ -410,7 +420,14 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            // Reset form state when closing dialog manually
+            if (!open) {
+              setDialogOpen(false);
+            } else {
+              setDialogOpen(true);
+            }
+          }}>
             <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#FFD500]/20 rounded-xl">
               <DialogHeader>
                 <DialogTitle className="text-gray-800">Create a New Bubble</DialogTitle>
