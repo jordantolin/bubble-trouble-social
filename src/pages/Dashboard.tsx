@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +13,38 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
 import { Bubble } from "@/types/bubble";
 import { Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Topic categories for bubbles
+const TOPIC_CATEGORIES = [
+  "AI",
+  "Mental Health",
+  "Art",
+  "Spirituality",
+  "Gaming",
+  "Startups",
+  "Philosophy",
+  "Technology",
+  "Science",
+  "Education",
+  "Environment",
+  "Relationships",
+  "Music",
+  "Film & TV",
+  "Books",
+  "Politics",
+  "Sports",
+  "Food",
+  "Travel",
+  "Other"
+];
 
 // Create Bubble Form Component
 const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
@@ -28,6 +52,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -77,12 +102,23 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       
       if (error) throw error;
       
+      // Show success animation
+      setIsSuccess(true);
+      
       toast({
         title: "Success!",
         description: "Your bubble has been created",
+        variant: "success",
       });
       
-      onClose();
+      // Close modal after brief delay to show success state
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+        setName("");
+        setTopic("");
+        setDescription("");
+      }, 1500);
     } catch (error: any) {
       console.error("Error creating bubble:", error);
       toast({
@@ -90,7 +126,6 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
         description: error.message || "Failed to create bubble. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -104,21 +139,31 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Give your bubble a name"
-          className="border-bubble-yellow focus:ring-bubble-yellow"
+          className="border-[#F9C80E] focus:ring-[#F9C80E]"
           required
+          disabled={isSubmitting || isSuccess}
         />
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
-        <Input 
-          id="topic" 
+        <Select
           value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="What's your bubble about?"
-          className="border-bubble-yellow focus:ring-bubble-yellow"
+          onValueChange={setTopic}
+          disabled={isSubmitting || isSuccess}
           required
-        />
+        >
+          <SelectTrigger className="border-[#F9C80E] focus:ring-[#F9C80E]">
+            <SelectValue placeholder="Select a topic" />
+          </SelectTrigger>
+          <SelectContent>
+            {TOPIC_CATEGORIES.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       <div className="space-y-2">
@@ -128,18 +173,27 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add more details about your bubble"
-          className="min-h-[100px] border-bubble-yellow focus:ring-bubble-yellow"
+          className="min-h-[100px] border-[#F9C80E] focus:ring-[#F9C80E]"
+          disabled={isSubmitting || isSuccess}
         />
       </div>
       
       <div className="flex justify-end space-x-2 pt-2">
-        <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
+        <Button 
+          variant="outline" 
+          type="button" 
+          onClick={onClose}
+          disabled={isSubmitting || isSuccess}
+          className="border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10"
+        >
+          Cancel
+        </Button>
         <Button 
           type="submit" 
-          disabled={isSubmitting}
-          className="bg-bubble-yellow hover:bg-bubble-yellow-dark text-white"
+          disabled={isSubmitting || isSuccess}
+          className={`bg-[#F9C80E] hover:bg-[#E6B800] text-white relative ${isSuccess ? 'animate-pulse' : ''}`}
         >
-          {isSubmitting ? "Creating..." : "Create Bubble"}
+          {isSubmitting ? "Creating..." : isSuccess ? "Created!" : "Create Bubble"}
         </Button>
       </div>
     </form>
@@ -151,9 +205,9 @@ const EmptyBubbleState = () => {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="w-24 h-24 mb-6 relative">
-        <div className="animate-bubble-float absolute w-16 h-16 rounded-full bg-bubble-yellow opacity-60 left-4"></div>
-        <div className="animate-bubble-float absolute w-12 h-12 rounded-full bg-bubble-yellow opacity-80 right-0 top-4" style={{ animationDelay: '0.5s' }}></div>
-        <div className="animate-bubble-float absolute w-8 h-8 rounded-full bg-bubble-yellow opacity-70 left-2 bottom-0" style={{ animationDelay: '1s' }}></div>
+        <div className="animate-bubble-float absolute w-16 h-16 rounded-full bg-[#F9C80E] opacity-60 left-4"></div>
+        <div className="animate-bubble-float absolute w-12 h-12 rounded-full bg-[#F9C80E] opacity-80 right-0 top-4" style={{ animationDelay: '0.5s' }}></div>
+        <div className="animate-bubble-float absolute w-8 h-8 rounded-full bg-[#F9C80E] opacity-70 left-2 bottom-0" style={{ animationDelay: '1s' }}></div>
       </div>
       <h3 className="text-xl font-semibold mb-2">No Bubbles Yet</h3>
       <p className="text-gray-500 max-w-xs">Create your first bubble to start a conversation or try a different search term</p>
@@ -328,14 +382,14 @@ const Dashboard = () => {
               placeholder="Search bubbles or users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-bubble-yellow rounded-md focus:ring-bubble-yellow focus:border-bubble-yellow"
+              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-[#F9C80E] rounded-md focus:ring-[#F9C80E] focus:border-[#F9C80E]"
             />
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#F9C80E]" size={16} />
           </div>
           <Button 
             variant="outline" 
             onClick={() => setShowFullView(!showFullView)}
-            className="text-sm border-bubble-yellow text-bubble-yellow-dark hover:bg-bubble-yellow/10"
+            className="text-sm border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10"
           >
             {showFullView ? "Show List View" : "Show 3D View"}
           </Button>
@@ -345,15 +399,15 @@ const Dashboard = () => {
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
       {isLoading ? (
         <div className="flex justify-center py-6">
-          <div className="w-16 h-16 rounded-full border-4 border-t-bubble-yellow border-b-bubble-yellow border-r-transparent border-l-transparent animate-spin"></div>
+          <div className="w-16 h-16 rounded-full border-4 border-t-[#F9C80E] border-b-[#F9C80E] border-r-transparent border-l-transparent animate-spin"></div>
         </div>
       ) : (
         <>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent>
+            <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#F9C80E]/20">
               <DialogHeader>
-                <DialogTitle>Create a New Bubble</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-gray-800">Create a New Bubble</DialogTitle>
+                <DialogDescription className="text-gray-600">
                   Add a new topic for discussion. Bubbles last for 7 days before they pop!
                 </DialogDescription>
               </DialogHeader>
@@ -362,7 +416,7 @@ const Dashboard = () => {
           </Dialog>
           
           {showFullView ? (
-            <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+            <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-[#FFF7DB] to-[#F9F3E5]">
               <BubbleOrbit 
                 bubbles={filteredBubbles} 
                 mostReflectedBubbles={mostReflectedBubbles} 
@@ -375,7 +429,7 @@ const Dashboard = () => {
       
       {/* List View of Bubbles (now conditionally rendered) */}
       {!showFullView && (
-        <Card className="mt-8">
+        <Card className="mt-8 border-[#F9C80E]/20">
           <CardHeader className="pb-3">
             <CardTitle>All Bubbles</CardTitle>
             <CardDescription>
@@ -388,13 +442,13 @@ const Dashboard = () => {
                 {filteredBubbles.map((bubble) => (
                   <div 
                     key={bubble.id} 
-                    className="p-4 border border-slate-200 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                    className="p-4 border border-[#F9C80E]/20 rounded-lg hover:bg-[#FFFDF5] transition cursor-pointer"
                     onClick={() => navigate(`/bubble/${bubble.id}`)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback className="bg-bubble-yellow text-white">
+                          <AvatarFallback className="bg-[#F9C80E] text-white">
                             {bubble.username?.charAt(0).toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
@@ -424,8 +478,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
-      
-      {/* Suggested connections removed as requested */}
     </div>
   );
 };

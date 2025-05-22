@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useReflectionStatus } from "@/hooks/useReflectionStatus";
 import { useGamification } from "@/contexts/GamificationContext";
 
@@ -86,12 +87,12 @@ const ReflectButton = ({
         disabled={isReflected || isLoading || !user?.username}
         className={isReflected 
           ? "bg-gray-200 text-gray-700" 
-          : "bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white"
+          : "bg-gradient-to-r from-[#F9C80E] to-[#FFB700] hover:from-[#E6B800] hover:to-[#E9A800] text-white"
         }
       >
         {isLoading ? "Processing..." : isReflected ? "Reflected" : "Reflect"}
       </Button>
-      <span className={`text-sm font-medium ${isReflected ? "text-bubble-yellow-dark" : ""}`}>
+      <span className={`text-sm font-medium ${isReflected ? "text-[#F9C80E]" : ""}`}>
         {count}
       </span>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -58,10 +57,10 @@ const CoreSphere = () => {
     <mesh ref={ref} position={[0, 0, 0]}>
       <sphereGeometry args={[1.2, 32, 32]} />
       <meshStandardMaterial 
-        color="#FFE066" 
+        color="#F9C80E" 
         metalness={0.4}
         roughness={0.2}
-        emissive="#FFE066"
+        emissive="#F9C80E"
         emissiveIntensity={0.8}
       />
     </mesh>
@@ -345,10 +344,11 @@ const BubbleTooltip: React.FC<{bubble: Bubble | null, position: {x: number, y: n
 const BubbleEnvironment = () => {
   return (
     <>
-      <ambientLight intensity={1.5} /> {/* Increased ambient light intensity */}
-      <pointLight position={[10, 10, 10]} intensity={2.5} color="#FFFFFF" /> {/* Increased point light intensity */}
-      <pointLight position={[-10, -10, -10]} intensity={1.8} color="#FFE166" /> {/* Increased yellow light intensity */}
-      <fog attach="fog" args={['#000', 25, 50]} /> {/* Adjusted fog to be more distant */}
+      <ambientLight intensity={2.0} color="#FFFACD" /> {/* Increased warm ambient light */}
+      <pointLight position={[10, 10, 10]} intensity={2.5} color="#FFFFFF" /> {/* Enhanced key light */}
+      <pointLight position={[-10, -10, -10]} intensity={1.8} color="#F9C80E" /> {/* Enhanced yellow fill light */}
+      <hemisphereLight args={["#F9C80E", "#FFE066", 1.5]} /> {/* Added hemisphere light for better ambient illumination */}
+      <fog attach="fog" args={["#F8D568", 25, 50]} /> {/* Yellow-tinted fog for depth and brand color */}
     </>
   );
 };
@@ -483,7 +483,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
             // Use golden-yellow palette to match logo (brighter, more consistent)
             let color;
             if (reflectCount >= 15) {
-              color = '#FFD000'; // Bright gold
+              color = '#F9C80E'; // Bright brand gold
             } else if (reflectCount >= 10) {
               color = '#FFD933'; // Slightly lighter gold
             } else if (reflectCount >= 5) {
@@ -491,7 +491,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
             } else if (reflectCount >= 1) {
               color = '#FFEC99'; // Very light gold
             } else {
-              color = '#FFD000'; // Default gold
+              color = '#F9C80E'; // Default gold
             }
             
             // Configure event handlers for tooltip

@@ -6,6 +6,7 @@ import { Bubble } from '@/types/bubble';
 import BubbleWorld from './BubbleWorld';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
+import BubbleLogo from './BubbleLogo';
 
 interface BubbleOrbitProps {
   bubbles: Bubble[];
@@ -26,7 +27,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
           variant={view === 'all' ? "default" : "outline"}
           size="sm"
           onClick={() => setView('all')}
-          className="rounded-full"
+          className={`rounded-full ${view === 'all' ? 'bg-[#F9C80E] hover:bg-[#E6B800] text-white' : 'border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10'}`}
         >
           All Bubbles
         </Button>
@@ -34,10 +35,14 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
           variant={view === 'trending' ? "default" : "outline"}
           size="sm"
           onClick={() => setView('trending')}
-          className="rounded-full"
+          className={`rounded-full ${view === 'trending' ? 'bg-[#F9C80E] hover:bg-[#E6B800] text-white' : 'border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10'}`}
         >
           Trending
         </Button>
+      </div>
+
+      <div className="absolute top-4 right-4 z-10">
+        <BubbleLogo className="h-10 w-10" />
       </div>
       
       <div className="h-full w-full">
@@ -51,7 +56,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
       >
         <Button 
           size="lg" 
-          className="h-12 w-12 rounded-full bg-bubble-yellow shadow-lg"
+          className="h-12 w-12 rounded-full bg-[#F9C80E] hover:bg-[#E6B800] shadow-lg text-white"
           onClick={onCreateBubble}
         >
           <Plus size={24} />
