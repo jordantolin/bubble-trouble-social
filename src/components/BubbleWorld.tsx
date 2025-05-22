@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -272,7 +271,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             outlineOpacity={0.9} // Increased opacity for stronger outline
             maxWidth={size * 4}
             textAlign="center"
-            font="/fonts/Inter-Bold.woff" // Using a consistent font
+            font="Arial" // Using a consistent font
           >
             {bubble.topic}
           </Text>
@@ -287,7 +286,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             outlineWidth={0.03}
             outlineColor="#000000"
             outlineOpacity={0.9}
-            font="/fonts/Inter-Medium.woff"
+            font="Arial"
           >
             {bubble.username || "Anonymous"}
           </Text>
@@ -302,7 +301,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             outlineWidth={0.03}
             outlineColor="#000000"
             outlineOpacity={0.9}
-            font="/fonts/Inter-Medium.woff"
+            font="Arial"
           >
             {`★ ${bubble.reflect_count || 0}`}
           </Text>
@@ -348,11 +347,11 @@ const BubbleTooltip: React.FC<{bubble: Bubble | null, position: {x: number, y: n
 const BubbleEnvironment = () => {
   return (
     <>
-      <ambientLight intensity={2.0} color="#FFFACD" /> {/* Increased warm ambient light */}
-      <pointLight position={[10, 10, 10]} intensity={2.5} color="#FFFFFF" /> {/* Enhanced key light */}
-      <pointLight position={[-10, -10, -10]} intensity={1.8} color="#F9C80E" /> {/* Enhanced yellow fill light */}
-      <hemisphereLight args={["#F9C80E", "#FFE066", 1.5]} /> {/* Added hemisphere light for better ambient illumination */}
-      <fog attach="fog" args={["#F8D568", 25, 50]} /> {/* Yellow-tinted fog for depth and brand color */}
+      <ambientLight intensity={2.5} color="#FFF8E1" /> {/* Increased warm ambient light */}
+      <pointLight position={[10, 10, 10]} intensity={3.0} color="#FFFFFF" /> {/* Enhanced key light */}
+      <pointLight position={[-10, -10, -10]} intensity={2.2} color="#FFD500" /> {/* Enhanced yellow fill light */}
+      <hemisphereLight args={["#FFD500", "#FFE066", 2.0]} /> {/* Added brighter hemisphere light */}
+      <fog attach="fog" args={["#F8D568", 30, 60]} /> {/* Lighter yellow-tinted fog for depth */}
     </>
   );
 };
@@ -438,12 +437,11 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
             minDistance={8}
             maxDistance={50}
             enableRotate={true}
-            // Enable full 360-degree rotation on all axes
+            rotateSpeed={0.8} // Increased rotation speed
             minPolarAngle={0} 
             maxPolarAngle={Math.PI}
             minAzimuthAngle={-Infinity}
             maxAzimuthAngle={Infinity}
-            rotateSpeed={0.5}
           />
         }
         

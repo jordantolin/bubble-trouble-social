@@ -17,6 +17,8 @@ import { useMockBubbles } from "@/hooks/useMockBubbles";
 import StreakNotice from "@/components/StreakNotice";
 import XPProgressBar from "@/components/XPProgressBar";
 import { useState, useEffect } from "react";
+import BubbleLogo from "@/components/BubbleLogo";
+import { motion } from "framer-motion";
 
 // Pages
 import Login from "./pages/Login";
@@ -41,9 +43,7 @@ const MainLayout = () => {
         <SidebarContent className="pt-5">
           <div className="px-4 mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-full bg-bubble-yellow flex items-center justify-center">
-                <span className="text-white font-bold">BT</span>
-              </div>
+              <BubbleLogo className="w-8 h-8" withAnimation />
               <h2 className="font-bold text-lg">Bubble Trouble</h2>
             </div>
           </div>
@@ -55,7 +55,7 @@ const MainLayout = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/" className={({ isActive }) => 
-                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-bubble-yellow/20 text-bubble-yellow-dark' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
+                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-[#FFD500]/20 text-[#F5C000] font-medium' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
                     }>
                       <Home size={18} />
                       <span>Home</span>
@@ -66,7 +66,7 @@ const MainLayout = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/profile" className={({ isActive }) => 
-                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-bubble-yellow/20 text-bubble-yellow-dark' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
+                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-[#FFD500]/20 text-[#F5C000] font-medium' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
                     }>
                       <Users size={18} />
                       <span>Profile</span>
@@ -77,7 +77,7 @@ const MainLayout = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/messages" className={({ isActive }) => 
-                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-bubble-yellow/20 text-bubble-yellow-dark' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
+                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-[#FFD500]/20 text-[#F5C000] font-medium' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
                     }>
                       <MessageCircle size={18} />
                       <span>Messages</span>
@@ -88,7 +88,7 @@ const MainLayout = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/settings" className={({ isActive }) => 
-                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-bubble-yellow/20 text-bubble-yellow-dark' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
+                      `flex items-center gap-3 px-4 py-2 rounded-md ${isActive ? 'bg-[#FFD500]/20 text-[#F5C000] font-medium' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`
                     }>
                       <Settings size={18} />
                       <span>Settings</span>
@@ -104,25 +104,29 @@ const MainLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 justify-between">
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 justify-between bg-gradient-to-r from-white to-[#FFFDF5]">
           <div className="flex items-center">
             <SidebarTrigger className="mr-4">
-              <Menu size={20} />
+              <motion.div whileHover={{ rotate: 5 }} whileTap={{ scale: 0.95 }}>
+                <Menu size={20} />
+              </motion.div>
             </SidebarTrigger>
             {/* Search bar removed from here to avoid duplication */}
           </div>
           
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"></span>
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FFD500]"></span>
+              </Button>
+            </motion.div>
             
             <div className="flex items-center gap-2">
               <XPProgressBar compact />
               
               <Avatar>
-                <AvatarFallback className="bg-bubble-yellow text-white">
+                <AvatarFallback className="bg-[#FFD500] text-white">
                   {user?.username?.charAt(0).toUpperCase() || "BT"}
                 </AvatarFallback>
                 {user?.avatarUrl && (

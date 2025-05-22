@@ -14,35 +14,35 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 45 100% 50%; /* Updated to golden yellow */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 60 100% 97%; /* Very light yellow */
+    --secondary-foreground: 45 100% 30%; /* Dark yellow text on secondary */
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 45 100% 96%; /* Light yellow accent */
+    --accent-foreground: 45 100% 30%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 45 100% 50%; /* Golden ring color */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Slightly more rounded */
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 45 100% 50%; /* Golden yellow sidebar primary */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 45 100% 96%;
+    --sidebar-accent-foreground: 45 100% 30%;
+    --sidebar-border: 45 100% 90%;
+    --sidebar-ring: 45 100% 60%;
   }
 
   .dark {
@@ -55,8 +55,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 45 100% 50%; /* Golden yellow stays in dark mode */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -73,14 +73,15 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 45 100% 50%; /* Golden yellow sidebar primary in dark mode */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 45 100% 60%;
   }
 }
 
@@ -119,8 +120,21 @@ canvas {
   }
 }
 
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 213, 0, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 213, 0, 0.8));
+  }
+}
+
 .animate-float {
   animation: float 5s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* Make sure the Three.js canvas is at the right z-index */
@@ -131,4 +145,39 @@ canvas {
   width: 100%;
   height: 100%;
   z-index: 0;
+}
+
+/* Enhanced button animations */
+.btn-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.btn-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 213, 0, 0.25);
+}
+
+/* Tailwind doesn't include specific amber shades so we define our bubble brand colors */
+.bg-bubble-yellow {
+  background-color: #FFD500;
+}
+
+.text-bubble-yellow {
+  color: #FFD500;
+}
+
+.border-bubble-yellow {
+  border-color: #FFD500;
+}
+
+.hover\:bg-bubble-yellow:hover {
+  background-color: #FFD500;
+}
+
+.hover\:text-bubble-yellow:hover {
+  color: #FFD500;
+}
+
+.hover\:border-bubble-yellow:hover {
+  border-color: #FFD500;
 }

@@ -23,22 +23,26 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
   return (
     <div className="relative h-full flex flex-col">
       <div className="absolute top-4 left-4 z-10 flex space-x-2">
-        <Button 
-          variant={view === 'all' ? "default" : "outline"}
-          size="sm"
-          onClick={() => setView('all')}
-          className={`rounded-full ${view === 'all' ? 'bg-[#F9C80E] hover:bg-[#E6B800] text-white' : 'border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10'}`}
-        >
-          All Bubbles
-        </Button>
-        <Button 
-          variant={view === 'trending' ? "default" : "outline"}
-          size="sm"
-          onClick={() => setView('trending')}
-          className={`rounded-full ${view === 'trending' ? 'bg-[#F9C80E] hover:bg-[#E6B800] text-white' : 'border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10'}`}
-        >
-          Trending
-        </Button>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            variant={view === 'all' ? "default" : "outline"}
+            size="sm"
+            onClick={() => setView('all')}
+            className={`rounded-full ${view === 'all' ? 'bg-[#FFD500] hover:bg-[#F5C000] text-white' : 'border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10'}`}
+          >
+            All Bubbles
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button 
+            variant={view === 'trending' ? "default" : "outline"}
+            size="sm"
+            onClick={() => setView('trending')}
+            className={`rounded-full ${view === 'trending' ? 'bg-[#FFD500] hover:bg-[#F5C000] text-white' : 'border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10'}`}
+          >
+            Trending
+          </Button>
+        </motion.div>
       </div>
 
       <div className="absolute top-4 right-4 z-10">
@@ -56,7 +60,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
       >
         <Button 
           size="lg" 
-          className="h-12 w-12 rounded-full bg-[#F9C80E] hover:bg-[#E6B800] shadow-lg text-white"
+          className="h-12 w-12 rounded-full bg-[#FFD500] hover:bg-[#F5C000] shadow-lg text-white"
           onClick={onCreateBubble}
         >
           <Plus size={24} />

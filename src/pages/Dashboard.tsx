@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,28 +22,29 @@ import ReflectButton from "@/components/ReflectButton";
 import { Bubble } from "@/types/bubble";
 import { Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion } from "framer-motion";
 
-// Topic categories for bubbles
+// Updated Topic categories for bubbles with enhanced list
 const TOPIC_CATEGORIES = [
-  "AI",
-  "Mental Health",
-  "Art",
-  "Spirituality",
-  "Gaming",
-  "Startups",
+  "AI & Technology",
   "Philosophy",
-  "Technology",
-  "Science",
-  "Education",
-  "Environment",
+  "Mental Health",
+  "Creativity & Art",
+  "Spirituality",
+  "Personal Growth",
   "Relationships",
-  "Music",
-  "Film & TV",
-  "Books",
-  "Politics",
-  "Sports",
-  "Food",
-  "Travel",
+  "Startups & Innovation",
+  "Consciousness",
+  "Dreams & Symbolism",
+  "Quantum Physics",
+  "Nature & Ecology",
+  "Mysticism",
+  "Gaming & Virtual Worlds",
+  "Society & Culture",
+  "Emotions & Self-Awareness",
+  "Science & Curiosity",
+  "Time & Perception",
+  "Cosmic Theories",
   "Other"
 ];
 
@@ -108,7 +110,6 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       toast({
         title: "Success!",
         description: "Your bubble has been created",
-        variant: "success",
       });
       
       // Close modal after brief delay to show success state
@@ -139,7 +140,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Give your bubble a name"
-          className="border-[#F9C80E] focus:ring-[#F9C80E]"
+          className="border-[#FFD500] focus:ring-[#FFD500]"
           required
           disabled={isSubmitting || isSuccess}
         />
@@ -153,7 +154,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           disabled={isSubmitting || isSuccess}
           required
         >
-          <SelectTrigger className="border-[#F9C80E] focus:ring-[#F9C80E]">
+          <SelectTrigger className="border-[#FFD500] focus:ring-[#FFD500]">
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
           <SelectContent>
@@ -173,28 +174,32 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add more details about your bubble"
-          className="min-h-[100px] border-[#F9C80E] focus:ring-[#F9C80E]"
+          className="min-h-[100px] border-[#FFD500] focus:ring-[#FFD500]"
           disabled={isSubmitting || isSuccess}
         />
       </div>
       
       <div className="flex justify-end space-x-2 pt-2">
-        <Button 
-          variant="outline" 
-          type="button" 
-          onClick={onClose}
-          disabled={isSubmitting || isSuccess}
-          className="border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10"
-        >
-          Cancel
-        </Button>
-        <Button 
-          type="submit" 
-          disabled={isSubmitting || isSuccess}
-          className={`bg-[#F9C80E] hover:bg-[#E6B800] text-white relative ${isSuccess ? 'animate-pulse' : ''}`}
-        >
-          {isSubmitting ? "Creating..." : isSuccess ? "Created!" : "Create Bubble"}
-        </Button>
+        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <Button 
+            variant="outline" 
+            type="button" 
+            onClick={onClose}
+            disabled={isSubmitting || isSuccess}
+            className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
+          >
+            Cancel
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || isSuccess}
+            className={`bg-[#FFD500] hover:bg-[#F5C000] text-white relative ${isSuccess ? 'animate-pulse' : ''}`}
+          >
+            {isSubmitting ? "Creating..." : isSuccess ? "Created!" : "Create Bubble"}
+          </Button>
+        </motion.div>
       </div>
     </form>
   );
@@ -382,29 +387,31 @@ const Dashboard = () => {
               placeholder="Search bubbles or users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-[#F9C80E] rounded-md focus:ring-[#F9C80E] focus:border-[#F9C80E]"
+              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-[#FFD500] rounded-md focus:ring-[#FFD500] focus:border-[#FFD500]"
             />
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#F9C80E]" size={16} />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#FFD500]" size={16} />
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowFullView(!showFullView)}
-            className="text-sm border-[#F9C80E] text-[#F9C80E] hover:bg-[#F9C80E]/10"
-          >
-            {showFullView ? "Show List View" : "Show 3D View"}
-          </Button>
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFullView(!showFullView)}
+              className="text-sm border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
+            >
+              {showFullView ? "Show List View" : "Show 3D View"}
+            </Button>
+          </motion.div>
         </div>
       </div>
       
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
       {isLoading ? (
         <div className="flex justify-center py-6">
-          <div className="w-16 h-16 rounded-full border-4 border-t-[#F9C80E] border-b-[#F9C80E] border-r-transparent border-l-transparent animate-spin"></div>
+          <div className="w-16 h-16 rounded-full border-4 border-t-[#FFD500] border-b-[#FFD500] border-r-transparent border-l-transparent animate-spin"></div>
         </div>
       ) : (
         <>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#F9C80E]/20">
+            <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#FFD500]/20 rounded-xl">
               <DialogHeader>
                 <DialogTitle className="text-gray-800">Create a New Bubble</DialogTitle>
                 <DialogDescription className="text-gray-600">
