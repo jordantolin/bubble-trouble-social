@@ -1,61 +1,24 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import BubbleItem from "@/components/BubbleItem";
-
-// Mock data for bubbles
-const MOCK_BUBBLES = [
-  {
-    id: "bubble-1",
-    content: "Just launched a new feature! Check it out at bubbletrouble.com/new",
-    user: {
-      id: "user-1",
-      username: "sarah_dev",
-      avatarUrl: "",
-    },
-    createdAt: new Date().toISOString(),
-    likesCount: 24,
-    commentsCount: 5,
-  },
-  {
-    id: "bubble-2",
-    content: "Looking for beta testers for my new app. Anyone interested?",
-    user: {
-      id: "user-2",
-      username: "tech_mike",
-      avatarUrl: "",
-    },
-    createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-    likesCount: 12,
-    commentsCount: 8,
-  },
-  {
-    id: "bubble-3",
-    content: "Just finished reading an amazing book on AI. Highly recommended!",
-    user: {
-      id: "user-3",
-      username: "bookworm_ai",
-      avatarUrl: "",
-    },
-    createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-    likesCount: 18,
-    commentsCount: 2,
-  },
-  {
-    id: "bubble-4",
-    content: "This is where we'll integrate 3D content later. Imagine a cool 3D bubble right here!",
-    user: {
-      id: "user-4",
-      username: "design_pro",
-      avatarUrl: "",
-    },
-    createdAt: new Date(Date.now() - 14400000).toISOString(), // 4 hours ago
-    likesCount: 32,
-    commentsCount: 7,
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Placeholder component for future 3D integration
 const ThreeDPlaceholder = () => (
@@ -71,14 +34,192 @@ const ThreeDPlaceholder = () => (
   </div>
 );
 
+// Type for bubble data from Supabase
+interface Bubble {
+  id: string;
+  name: string;
+  topic: string;
+  description: string | null;
+  username: string;
+  created_at: string;
+  expires_at: string;
+  size: string;
+  reflect_count: number | null;
+}
+
+// Create Bubble Form Component
+const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
+  const [topic, setTopic] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!topic || !name) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Calculate expiration date (7 days from now)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      // Insert new bubble
+      const { data, error } = await supabase
+        .from('bubbles')
+        .insert({
+          topic,
+          name,
+          description: description || null,
+          username: user?.username || user?.email?.split('@')[0] || '',
+          expires_at: expiresAt.toISOString(),
+          size: 'sm', // Default size
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success!",
+        description: "Your bubble has been created",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error("Error creating bubble:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create bubble. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Bubble Name</Label>
+        <Input 
+          id="name" 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Give your bubble a name"
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="topic">Topic</Label>
+        <Input 
+          id="topic" 
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="What's your bubble about?"
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Textarea 
+          id="description" 
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Add more details about your bubble"
+          className="min-h-[100px]"
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Bubble"}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
 // Dashboard page
 const Dashboard = () => {
-  const [bubbles, setBubbles] = useState(MOCK_BUBBLES);
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { toast } = useToast();
+  
+  // Fetch bubbles from Supabase
+  useEffect(() => {
+    const fetchBubbles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bubbles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setBubbles(data || []);
+      } catch (error) {
+        console.error("Error fetching bubbles:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load bubbles. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBubbles();
+    
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('public:bubbles')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'bubbles' },
+        (payload) => {
+          setBubbles(currentBubbles => [payload.new as Bubble, ...currentBubbles]);
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
   
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Create New Bubble</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a New Bubble</DialogTitle>
+              <DialogDescription>
+                Add a new topic for discussion. Bubbles last for 7 days before they pop!
+              </DialogDescription>
+            </DialogHeader>
+            <CreateBubbleForm onClose={() => setDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
       
       <ThreeDPlaceholder />
@@ -91,11 +232,41 @@ const Dashboard = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {bubbles.map((bubble) => (
-              <BubbleItem key={bubble.id} bubble={bubble} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-6">
+              <p>Loading bubbles...</p>
+            </div>
+          ) : bubbles.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-gray-500">No bubbles found. Create the first one!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bubbles.map((bubble) => (
+                <div key={bubble.id} className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Avatar>
+                      <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-medium">{bubble.name}</h3>
+                      <p className="text-sm text-gray-500">By {bubble.username}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Topic: {bubble.topic}</p>
+                    {bubble.description && (
+                      <p className="text-sm text-gray-600">{bubble.description}</p>
+                    )}
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Created: {format(new Date(bubble.created_at), 'PPp')}</span>
+                      <span>Reflections: {bubble.reflect_count || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
       

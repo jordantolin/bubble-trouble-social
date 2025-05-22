@@ -1,8 +1,10 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { User, Session } from "@supabase/supabase-js";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-interface User {
+interface UserProfile {
   id: string;
   email: string;
   username: string;
@@ -11,52 +13,82 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, username: string) => Promise<void>;
-  logout: () => void;
-  updateProfile: (userData: Partial<User>) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (userData: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Mock auth functions (to be replaced with Supabase)
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
+            avatarUrl: session.user.user_metadata.avatar_url,
+          });
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
+          avatarUrl: session.user.user_metadata.avatar_url,
+        });
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Mock successful login
-      if (email && password) {
-        const mockUser = {
-          id: "user-123",
-          email,
-          username: email.split('@')[0],
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('bubble_user', JSON.stringify(mockUser));
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-      } else {
-        throw new Error("Invalid credentials");
-      }
-    } catch (error) {
+      if (error) throw error;
+      
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully logged in.",
+      });
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: error instanceof Error ? error.message : "Please check your credentials and try again.",
+        description: error?.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -65,85 +97,86 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (email: string, password: string, username: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+          }
+        }
+      });
       
-      // Mock successful registration
-      if (email && password && username) {
-        const mockUser = {
-          id: "user-" + Math.floor(Math.random() * 1000),
-          email,
-          username,
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('bubble_user', JSON.stringify(mockUser));
-        toast({
-          title: "Account created!",
-          description: "Welcome to Bubble Trouble.",
-        });
-      } else {
-        throw new Error("Please fill in all required fields");
-      }
-    } catch (error) {
+      if (error) throw error;
+      
+      toast({
+        title: "Account created!",
+        description: "Welcome to Bubble Trouble.",
+      });
+    } catch (error: any) {
       toast({
         title: "Registration failed",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        description: error?.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
   
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('bubble_user');
-    toast({
-      title: "Logged out",
-      description: "You've been successfully logged out.",
-    });
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out",
+        description: "You've been successfully logged out.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Logout failed",
+        description: error?.message || "Something went wrong during logout.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const updateProfile = async (userData: Partial<User>) => {
+  const updateProfile = async (userData: Partial<UserProfile>) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!session?.user) throw new Error("No user logged in");
       
-      if (user) {
-        const updatedUser = { ...user, ...userData };
-        setUser(updatedUser);
-        localStorage.setItem('bubble_user', JSON.stringify(updatedUser));
-        toast({
-          title: "Profile updated",
-          description: "Your profile has been successfully updated.",
-        });
-      }
-    } catch (error) {
+      const { error } = await supabase.auth.updateUser({
+        data: userData
+      });
+      
+      if (error) throw error;
+      
+      setUser(prev => prev ? { ...prev, ...userData } : null);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error: any) {
       toast({
         title: "Update failed",
-        description: error instanceof Error ? error.message : "Failed to update profile.",
+        description: error?.message || "Failed to update profile.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Check for existing session on mount
-  useState(() => {
-    const storedUser = localStorage.getItem('bubble_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  });
   
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        session,
+        isAuthenticated: !!session,
         isLoading,
         login,
         register,
