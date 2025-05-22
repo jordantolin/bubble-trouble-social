@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,12 +37,51 @@ const BubbleDetail = () => {
   const navigate = useNavigate();
   const { isReflected } = useReflectionStatus(id || "");
 
+  // Check if this is a mock bubble ID (non-UUID format)
+  const isMockId = id ? id.startsWith('mock-') : false;
+  
+  // Mock data for testing
+  const mockMessages: BubbleMessage[] = [
+    {
+      id: "mock-msg-1",
+      bubble_id: id || "",
+      content: "This is a mock message for testing",
+      message: "This is a mock message for testing",
+      username: "TestUser",
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "mock-msg-2",
+      bubble_id: id || "",
+      content: "Another mock message for testing",
+      message: "Another mock message for testing",
+      username: "AnotherUser",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+    }
+  ];
+
   // Fetch bubble details
   useEffect(() => {
     const fetchBubble = async () => {
       try {
         if (!id) return;
         
+        if (isMockId) {
+          // For mock bubbles, create a mock bubble object
+          setBubble({
+            id: id,
+            topic: `Mock Bubble ${id.split('-')[1]}`,
+            name: `Mock Bubble ${id.split('-')[1]}`,
+            description: "This is a mock bubble for testing",
+            reflect_count: Math.floor(Math.random() * 15),
+            username: "MockUser",
+            created_at: new Date().toISOString(),
+          } as Bubble);
+          setIsLoading(false);
+          return;
+        }
+        
+        // For real bubbles, fetch from Supabase
         const { data, error } = await supabase
           .from('bubbles')
           .select('*')
@@ -67,20 +107,22 @@ const BubbleDetail = () => {
     fetchBubble();
 
     // Subscribe to real-time updates for bubbles
-    const bubbleChannel = supabase
-      .channel('public:bubbles')
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'bubbles', filter: `id=eq.${id}` },
-        (payload) => {
-          setBubble(payload.new as Bubble);
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(bubbleChannel);
-    };
-  }, [id, toast, navigate]);
+    if (!isMockId) {
+      const bubbleChannel = supabase
+        .channel('public:bubbles')
+        .on('postgres_changes', 
+          { event: 'UPDATE', schema: 'public', table: 'bubbles', filter: `id=eq.${id}` },
+          (payload) => {
+            setBubble(payload.new as Bubble);
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(bubbleChannel);
+      };
+    }
+  }, [id, toast, navigate, isMockId]);
 
   // Fetch messages and set up real-time subscription
   useEffect(() => {
@@ -88,6 +130,13 @@ const BubbleDetail = () => {
       try {
         if (!id) return;
         
+        if (isMockId) {
+          // For mock bubbles, use mock messages
+          setMessages(mockMessages);
+          return;
+        }
+        
+        // For real bubbles, fetch from Supabase
         const { data, error } = await supabase
           .from('bubble_messages')
           .select('*')
@@ -110,20 +159,22 @@ const BubbleDetail = () => {
     fetchMessages();
     
     // Subscribe to real-time updates
-    const channel = supabase
-      .channel('public:bubble_messages')
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'bubble_messages', filter: `bubble_id=eq.${id}` },
-        (payload) => {
-          setMessages(currentMessages => [...currentMessages, payload.new as BubbleMessage]);
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [id, toast]);
+    if (!isMockId) {
+      const channel = supabase
+        .channel('public:bubble_messages')
+        .on('postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'bubble_messages', filter: `bubble_id=eq.${id}` },
+          (payload) => {
+            setMessages(currentMessages => [...currentMessages, payload.new as BubbleMessage]);
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [id, toast, isMockId, mockMessages]);
   
   // Handle message submission
   const handleSubmitMessage = async (e: React.FormEvent) => {
@@ -150,6 +201,23 @@ const BubbleDetail = () => {
     setIsSubmitting(true);
     
     try {
+      if (isMockId) {
+        // For mock bubbles, just add to local state
+        const mockMessage: BubbleMessage = {
+          id: `mock-msg-${Date.now()}`,
+          bubble_id: id || "",
+          content: newMessage.trim(),
+          message: newMessage.trim(),
+          username: user?.username || 'You',
+          created_at: new Date().toISOString(),
+        };
+        
+        setMessages(prev => [...prev, mockMessage]);
+        setNewMessage("");
+        return;
+      }
+      
+      // For real bubbles, send to Supabase
       const { data, error } = await supabase
         .from('bubble_messages')
         .insert({

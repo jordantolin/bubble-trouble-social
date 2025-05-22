@@ -7,10 +7,20 @@ export const useReflectionStatus = (bubbleId: string) => {
   const [isReflected, setIsReflected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  
+  // Check if this is a mock bubble ID (non-UUID format)
+  const isMockId = bubbleId ? bubbleId.startsWith('mock-') : false;
 
   useEffect(() => {
     const checkReflectionStatus = async () => {
       if (!user?.username || !bubbleId) {
+        setIsLoading(false);
+        return;
+      }
+
+      // For mock bubbles, use random reflection status
+      if (isMockId) {
+        setIsReflected(Math.random() > 0.5);
         setIsLoading(false);
         return;
       }
@@ -36,7 +46,7 @@ export const useReflectionStatus = (bubbleId: string) => {
     };
 
     checkReflectionStatus();
-  }, [bubbleId, user?.username]);
+  }, [bubbleId, user?.username, isMockId]);
 
   return { isReflected, isLoading };
 };

@@ -1,1 +1,23 @@
+
+# This is your project config file
 project_id = "aaxmbdmzsyfgnzielkir"
+
+[api]
+enabled = true
+
+[db]
+# Add Row Level Security policies
+[db.realtime]
+enabled = true
+
+[[db.realtime.tables]]
+name = "bubbles"
+enable_realtime = true
+
+[[db.realtime.tables]]
+name = "bubble_messages" 
+enable_realtime = true
+
+[[db.realtime.tables]]
+name = "reflects"
+enable_realtime = true
