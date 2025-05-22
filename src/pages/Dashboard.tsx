@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -158,10 +158,12 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
-        {/* Fixed dropdown implementation with proper onValueChange and value binding */}
         <Select
           value={topic}
-          onValueChange={setTopic}
+          onValueChange={(value) => {
+            console.log("Topic selected:", value);
+            setTopic(value);
+          }}
           disabled={isSubmitting || isSuccess}
         >
           <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500]">
@@ -386,6 +388,16 @@ const Dashboard = () => {
     };
   }, [toast, searchTerm]);
   
+  const handleCloseDialog = () => {
+    console.log("Dialog closed manually");
+    setDialogOpen(false);
+  };
+  
+  const handleCreateBubble = () => {
+    console.log("Opening create bubble dialog");
+    setDialogOpen(true);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -421,12 +433,8 @@ const Dashboard = () => {
       ) : (
         <>
           <Dialog open={dialogOpen} onOpenChange={(open) => {
-            // Reset form state when closing dialog manually
-            if (!open) {
-              setDialogOpen(false);
-            } else {
-              setDialogOpen(true);
-            }
+            console.log("Dialog state changed:", open);
+            setDialogOpen(open);
           }}>
             <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#FFD500]/20 rounded-xl">
               <DialogHeader>
@@ -435,7 +443,7 @@ const Dashboard = () => {
                   Add a new topic for discussion. Bubbles last for 7 days before they pop!
                 </DialogDescription>
               </DialogHeader>
-              <CreateBubbleForm onClose={() => setDialogOpen(false)} />
+              <CreateBubbleForm onClose={handleCloseDialog} />
             </DialogContent>
           </Dialog>
           
@@ -444,7 +452,7 @@ const Dashboard = () => {
               <BubbleOrbit 
                 bubbles={filteredBubbles} 
                 mostReflectedBubbles={mostReflectedBubbles} 
-                onCreateBubble={() => setDialogOpen(true)} 
+                onCreateBubble={handleCreateBubble} 
               />
             </div>
           ) : null}
