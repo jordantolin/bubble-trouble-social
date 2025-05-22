@@ -18,6 +18,8 @@ interface BubbleProps {
   orbitRadius: number;
   orbitSpeed: number;
   orbitOffset: number;
+  bubbleIndex: number;
+  allBubblePositions: React.MutableRefObject<THREE.Vector3[]>;
 }
 
 // Camera animation controller
@@ -81,6 +83,63 @@ const CoreSphere = () => {
   );
 };
 
+// Bubble repulsion system
+const useRepulsionSystem = (
+  bubbleIndex: number,
+  allPositions: React.MutableRefObject<THREE.Vector3[]>,
+  orbitRadius: number,
+  orbitAngle: React.MutableRefObject<number>,
+  orbitSpeed: number,
+  heightOffset: number
+) => {
+  // Base position calculation (orbital path)
+  const calcBasePosition = (state: any) => {
+    orbitAngle.current += orbitSpeed;
+    
+    // Calculate new position based on orbital physics
+    const x = Math.cos(orbitAngle.current) * orbitRadius;
+    const z = Math.sin(orbitAngle.current) * orbitRadius;
+    const y = heightOffset + Math.sin(state.clock.getElapsedTime() * 0.5 + orbitAngle.current) * 0.8;
+    
+    return new THREE.Vector3(x, y, z);
+  };
+  
+  // Apply repulsion forces between bubbles
+  const applyRepulsion = (basePos: THREE.Vector3) => {
+    if (!allPositions.current[bubbleIndex]) {
+      allPositions.current[bubbleIndex] = basePos.clone();
+      return basePos;
+    }
+    
+    // Start with the base orbital position
+    const finalPosition = basePos.clone();
+    
+    // Check distance with other bubbles and apply repulsion
+    for (let i = 0; i < allPositions.current.length; i++) {
+      if (i !== bubbleIndex && allPositions.current[i]) {
+        const otherPos = allPositions.current[i];
+        const direction = finalPosition.clone().sub(otherPos);
+        const distance = direction.length();
+        
+        // Apply repulsion if bubbles are too close
+        if (distance < 2.5) {
+          direction.normalize();
+          // The closer they are, the stronger the repulsion
+          const repulsionStrength = (2.5 - distance) * 0.05;
+          direction.multiplyScalar(repulsionStrength);
+          finalPosition.add(direction);
+        }
+      }
+    }
+    
+    // Update position in the shared array
+    allPositions.current[bubbleIndex] = finalPosition.clone();
+    return finalPosition;
+  };
+  
+  return { calcBasePosition, applyRepulsion };
+};
+
 const BubbleSphere: React.FC<BubbleProps> = ({ 
   position, 
   size, 
@@ -90,26 +149,38 @@ const BubbleSphere: React.FC<BubbleProps> = ({
   onBubbleClick, 
   orbitRadius, 
   orbitSpeed, 
-  orbitOffset 
+  orbitOffset,
+  bubbleIndex,
+  allBubblePositions
 }) => {
   const ref = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const { isReflected } = useReflectionStatus(bubble.id);
-  const originalPosition = useRef(new THREE.Vector3(position[0], position[1], position[2]));
   const orbitAngle = useRef(orbitOffset);
+  
+  // Initialize repulsion system
+  const { calcBasePosition, applyRepulsion } = useRepulsionSystem(
+    bubbleIndex,
+    allBubblePositions,
+    orbitRadius,
+    orbitAngle,
+    orbitSpeed,
+    position[1]
+  );
   
   useFrame((state) => {
     if (ref.current) {
       if (!isTargetBubble) {
-        // Orbital physics animation
-        orbitAngle.current += orbitSpeed;
+        // Calculate base orbital position
+        const basePosition = calcBasePosition(state);
         
-        // Calculate new position based on orbital physics
-        const x = Math.cos(orbitAngle.current) * orbitRadius;
-        const z = Math.sin(orbitAngle.current) * orbitRadius;
-        const y = position[1] + Math.sin(state.clock.getElapsedTime() * 0.5 + orbitOffset) * 0.8;
+        // Apply repulsion forces
+        const finalPosition = applyRepulsion(basePosition);
         
-        ref.current.position.set(x, y, z);
+        // Update mesh position
+        ref.current.position.copy(finalPosition);
+        
+        // Rotation animation
         ref.current.rotation.y += 0.01;
         ref.current.rotation.x += 0.005;
       } else {
@@ -125,7 +196,7 @@ const BubbleSphere: React.FC<BubbleProps> = ({
   };
   
   // Calculate opacity based on whether this is the target bubble
-  const opacity = isTargetBubble ? 0.9 : hovered ? 0.85 : 0.8; // Less transparent
+  const opacity = isTargetBubble ? 0.9 : hovered ? 0.85 : 0.8; 
   // Fade out non-target bubbles when a target is selected
   const fadeOpacity = isTargetBubble ? 1 : (isTargetBubble === false) ? 0.3 : 1;
   
@@ -147,14 +218,17 @@ const BubbleSphere: React.FC<BubbleProps> = ({
         onPointerOut={() => setHovered(false)}
       >
         <sphereGeometry args={[size, 32, 32]} />
-        <meshStandardMaterial 
+        <meshPhysicalMaterial 
           color={color} 
           transparent 
           opacity={opacity * fadeOpacity}
           emissive={color}
           emissiveIntensity={emissiveIntensity}
-          metalness={0.5}
-          roughness={0.3}
+          metalness={0.6}
+          roughness={0.2}
+          clearcoat={0.5}
+          clearcoatRoughness={0.3}
+          envMapIntensity={0.8}
         />
       </mesh>
       
@@ -198,6 +272,18 @@ const BubbleTooltip: React.FC<{bubble: Bubble | null, position: {x: number, y: n
   );
 };
 
+// Environment to add lighting and atmosphere
+const BubbleEnvironment = () => {
+  return (
+    <>
+      <ambientLight intensity={0.6} />
+      <pointLight position={[10, 10, 10]} intensity={1.5} />
+      <pointLight position={[-10, -10, -10]} intensity={1} color="#FFE166" />
+      <fog attach="fog" args={['#000', 15, 40]} />
+    </>
+  );
+};
+
 interface BubbleWorldProps {
   bubbles: Bubble[];
 }
@@ -210,6 +296,14 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
   const [hoveredBubble, setHoveredBubble] = useState<Bubble | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [tooltipVisible, setTooltipVisible] = useState(false);
+  
+  // Shared reference for all bubble positions (used for collision avoidance)
+  const allBubblePositions = useRef<THREE.Vector3[]>([]);
+  
+  // Initialize bubble positions array when bubbles change
+  useEffect(() => {
+    allBubblePositions.current = new Array(bubbles.length);
+  }, [bubbles.length]);
   
   // Handle mouse movement for tooltip
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -247,9 +341,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
   return (
     <div className="w-full h-full relative" onMouseMove={handleMouseMove}>
       <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} />
-        <pointLight position={[-10, -10, -10]} intensity={1} color="#FFE166" />
+        <BubbleEnvironment />
         
         {!isAnimating && <OrbitControls enableZoom={true} enablePan={false} />}
         <CameraController 
@@ -262,31 +354,31 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
         {!isAnimating && <CoreSphere />}
         
         {bubbles.map((bubble, index) => {
-          // Calculate orbital parameters
-          const orbitGroup = index % 3; // 3 main orbit groups
-          const baseRadius = 3 + orbitGroup * 2; // Different radius for each group
-          const radiusVariation = (index % 5) * 0.3; // Small variation within groups
+          // Calculate orbital parameters with more variation
+          const orbitGroup = index % 5; // 5 main orbit groups for more distribution
+          const baseRadius = 4 + orbitGroup * 1.5; // Different radius for each group
+          const radiusVariation = (index % 7) * 0.4; // More variation within groups
           const orbitRadius = baseRadius + radiusVariation;
           
-          // Orbit speed and initial angle
-          const baseSpeed = 0.001 + (orbitGroup * 0.0005); 
-          const speedVariation = (index % 7) * 0.00015;
+          // Orbit speed and initial angle with more variation
+          const baseSpeed = 0.0008 + (orbitGroup * 0.0003); 
+          const speedVariation = (index % 9) * 0.00012;
           const orbitSpeed = baseSpeed - speedVariation;
           const orbitOffset = index * (Math.PI / (bubbles.length / 2)); // Distribute bubbles evenly
           
           // Starting position on the orbit
           const startAngle = orbitOffset;
           const x = Math.cos(startAngle) * orbitRadius;
-          const y = Math.sin(index * 0.5) * 2; // Vertical distribution
+          const y = Math.sin(index * 0.7) * 3; // More vertical distribution
           const z = Math.sin(startAngle) * orbitRadius;
           
           // Determine size and color based on reflection count more dramatically
           const reflectCount = bubble.reflect_count || 0;
           
           // More dramatic size scaling
-          let size = 0.6 + (reflectCount * 0.1);
+          let size = 0.6 + (reflectCount * 0.12);
           // Cap size at a reasonable maximum
-          size = Math.min(size, 2.2);
+          size = Math.min(size, 2.5);
           
           // Vibrant color palette based on reflect count
           let color;
@@ -334,6 +426,8 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
                 orbitRadius={orbitRadius}
                 orbitSpeed={orbitSpeed}
                 orbitOffset={orbitOffset}
+                bubbleIndex={index}
+                allBubblePositions={allBubblePositions}
               />
             </group>
           );
