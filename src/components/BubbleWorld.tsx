@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
+import * as THREE from 'three';
 
 interface BubbleProps {
   position: [number, number, number];
