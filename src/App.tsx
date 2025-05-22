@@ -1,21 +1,23 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { GamificationProvider } from "./contexts/GamificationContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, 
   SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { useNavigate, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Home, Users, MessageCircle, Settings, Search, Bell, Menu } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BubbleWorld from "@/components/BubbleWorld";
 import { useMockBubbles } from "@/hooks/useMockBubbles";
 import StreakAnimation from "@/components/StreakAnimation";
+import XPProgressBar from "@/components/XPProgressBar";
+import { useState } from "react";
 
 // Pages
 import Login from "./pages/Login";
@@ -30,6 +32,16 @@ const queryClient = new QueryClient();
 
 const MainLayout = () => {
   const { bubbles } = useMockBubbles(20);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchTerm.trim()) {
+      navigate("/?search=" + encodeURIComponent(searchTerm));
+      // The search functionality is handled in the Dashboard component
+    }
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
@@ -111,6 +123,9 @@ const MainLayout = () => {
               <Input 
                 placeholder="Search bubbles..." 
                 className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border-none"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleSearch}
               />
             </div>
           </div>
@@ -121,18 +136,29 @@ const MainLayout = () => {
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"></span>
             </Button>
             
-            <Avatar>
-              <AvatarFallback className="bg-bubble-yellow text-white">
-                BT
-              </AvatarFallback>
-            </Avatar>
+            <div className="flex items-center gap-2">
+              <XPProgressBar compact />
+              
+              <Avatar>
+                <AvatarFallback className="bg-bubble-yellow text-white">
+                  {user?.username?.charAt(0).toUpperCase() || "BT"}
+                </AvatarFallback>
+                {user?.avatar_url && (
+                  <AvatarImage src={user.avatar_url} alt={user.username || "User"} />
+                )}
+              </Avatar>
+            </div>
           </div>
         </header>
 
-        {/* Main content area with immersive BubbleWorld - no overlays */}
-        <main className="flex-1 relative overflow-hidden">
-          <BubbleWorld bubbles={bubbles} />
-        </main>
+        {/* Main content area with Route content */}
+        <div className="flex-1 overflow-auto p-6">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/bubble/:id" element={<BubbleDetail />} />
+          </Routes>
+        </div>
       </div>
     </div>
   );
@@ -152,9 +178,7 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route element={<ProtectedRoute />}>
-                  <Route path="/" element={<MainLayout />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/bubble/:id" element={<BubbleDetail />} />
+                  <Route path="/*" element={<MainLayout />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

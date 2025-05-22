@@ -107,9 +107,9 @@ const BubbleDetail = () => {
     fetchBubble();
 
     // Subscribe to real-time updates for bubbles
-    if (!isMockId) {
+    if (!isMockId && id) {
       const bubbleChannel = supabase
-        .channel('public:bubbles')
+        .channel(`bubble-updates-${id}`)
         .on('postgres_changes', 
           { event: 'UPDATE', schema: 'public', table: 'bubbles', filter: `id=eq.${id}` },
           (payload) => {
@@ -159,19 +159,20 @@ const BubbleDetail = () => {
     fetchMessages();
     
     // Subscribe to real-time updates
-    if (!isMockId) {
-      const channel = supabase
-        .channel('public:bubble_messages')
+    if (!isMockId && id) {
+      const messagesChannel = supabase
+        .channel(`messages-${id}`)
         .on('postgres_changes', 
           { event: 'INSERT', schema: 'public', table: 'bubble_messages', filter: `bubble_id=eq.${id}` },
           (payload) => {
+            console.log('New message received:', payload.new);
             setMessages(currentMessages => [...currentMessages, payload.new as BubbleMessage]);
           }
         )
         .subscribe();
       
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(messagesChannel);
       };
     }
   }, [id, toast, isMockId, mockMessages]);
@@ -218,15 +219,15 @@ const BubbleDetail = () => {
       }
       
       // For real bubbles, send to Supabase
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('bubble_messages')
         .insert({
           bubble_id: id,
           content: newMessage.trim(),
+          message: newMessage.trim(),
           username: user?.username || '',
-          message: newMessage.trim(), // Added to match required field in schema
-        })
-        .select();
+          user_id: user?.id || null
+        });
       
       if (error) throw error;
       

@@ -9,21 +9,35 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+});
 
 // Enable realtime subscriptions for relevant tables
 supabase.channel('public:bubbles')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'bubbles' }, () => {})
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'bubbles' }, payload => {
+    console.log('Bubbles change received:', payload);
+  })
   .subscribe();
 
 supabase.channel('public:reflects')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'reflects' }, () => {})
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'reflects' }, payload => {
+    console.log('Reflects change received:', payload);
+  })
   .subscribe();
 
 supabase.channel('public:gamification_profiles')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'gamification_profiles' }, () => {})
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'gamification_profiles' }, payload => {
+    console.log('Gamification profile change received:', payload);
+  })
   .subscribe();
 
 supabase.channel('public:bubble_messages')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'bubble_messages' }, () => {})
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'bubble_messages' }, payload => {
+    console.log('Bubble message change received:', payload);
+  })
   .subscribe();

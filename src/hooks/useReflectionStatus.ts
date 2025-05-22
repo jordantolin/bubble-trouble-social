@@ -26,6 +26,7 @@ export const useReflectionStatus = (bubbleId: string) => {
       }
 
       try {
+        console.log("Checking reflection status for", bubbleId, "user:", user.username);
         const { data, error } = await supabase
           .from("reflects")
           .select("*")
@@ -37,6 +38,7 @@ export const useReflectionStatus = (bubbleId: string) => {
           console.error("Error checking reflection status:", error);
         }
 
+        console.log("Reflection status result:", data);
         setIsReflected(!!data);
       } catch (error) {
         console.error("Failed to check reflection status:", error);
@@ -46,6 +48,30 @@ export const useReflectionStatus = (bubbleId: string) => {
     };
 
     checkReflectionStatus();
+
+    // Set up realtime subscription for this user's reflects on this bubble
+    if (!isMockId && user?.username) {
+      const channel = supabase
+        .channel(`reflect-status-${bubbleId}-${user.username}`)
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'reflects', 
+            filter: `bubble_id=eq.${bubbleId}` 
+          },
+          (payload) => {
+            if (payload.new && payload.new.username === user.username) {
+              setIsReflected(true);
+            }
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [bubbleId, user?.username, isMockId]);
 
   return { isReflected, isLoading };

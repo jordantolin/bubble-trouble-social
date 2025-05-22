@@ -62,7 +62,7 @@ const ReflectButton = ({
         variant={isReflected ? "secondary" : "default"}
         size="sm"
         onClick={handleReflect}
-        disabled={isReflected || isLoading}
+        disabled={isReflected || isLoading || !user?.username}
         className={isReflected ? "bg-gray-200 text-gray-700" : "bg-bubble-yellow hover:bg-bubble-yellow-dark text-white"}
       >
         {isLoading ? "Processing..." : isReflected ? "Reflected" : "Reflect"}

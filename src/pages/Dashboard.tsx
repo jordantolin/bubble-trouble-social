@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import BubbleOrbit from "@/components/BubbleOrbit";
 import ReflectButton from "@/components/ReflectButton";
 import { Bubble } from "@/types/bubble";
+import { Search } from "lucide-react";
 
 // Create Bubble Form Component
 const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
@@ -135,10 +135,29 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showFullView, setShowFullView] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredBubbles, setFilteredBubbles] = useState<Bubble[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   
   const navigate = useNavigate();
+  
+  // Search function to filter bubbles
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredBubbles(bubbles);
+      return;
+    }
+    
+    const searchTermLower = searchTerm.toLowerCase();
+    const results = bubbles.filter(bubble => 
+      (bubble.topic && bubble.topic.toLowerCase().includes(searchTermLower)) ||
+      (bubble.name && bubble.name.toLowerCase().includes(searchTermLower)) ||
+      (bubble.username && bubble.username.toLowerCase().includes(searchTermLower))
+    );
+    
+    setFilteredBubbles(results);
+  }, [searchTerm, bubbles]);
   
   // Fetch bubbles from Supabase
   useEffect(() => {
@@ -153,6 +172,7 @@ const Dashboard = () => {
         if (regularError) throw regularError;
         
         setBubbles(regularData || []);
+        setFilteredBubbles(regularData || []);
 
         // Get most reflected bubbles
         const { data: reflectedData, error: reflectedError } = await supabase
@@ -181,24 +201,52 @@ const Dashboard = () => {
     
     // Subscribe to realtime changes
     const channel = supabase
-      .channel('public:bubbles')
+      .channel('bubbles-dashboard')
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'bubbles' },
         (payload) => {
-          setBubbles(currentBubbles => [payload.new as Bubble, ...currentBubbles]);
+          console.log('New bubble inserted:', payload.new);
+          setBubbles(currentBubbles => {
+            const newBubbles = [payload.new as Bubble, ...currentBubbles];
+            setFilteredBubbles(prev => {
+              const searchTermLower = searchTerm.toLowerCase();
+              if (!searchTerm) return newBubbles;
+              
+              return newBubbles.filter(bubble => 
+                (bubble.topic && bubble.topic.toLowerCase().includes(searchTermLower)) ||
+                (bubble.name && bubble.name.toLowerCase().includes(searchTermLower)) ||
+                (bubble.username && bubble.username.toLowerCase().includes(searchTermLower))
+              );
+            });
+            return newBubbles;
+          });
         }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'bubbles' },
         (payload) => {
+          console.log('Bubble updated:', payload.new);
           const updatedBubble = payload.new as Bubble;
           
           // Update in regular bubbles
-          setBubbles(currentBubbles => 
-            currentBubbles.map(bubble => 
+          setBubbles(currentBubbles => {
+            const updatedBubbles = currentBubbles.map(bubble => 
               bubble.id === updatedBubble.id ? updatedBubble : bubble
-            )
-          );
+            );
+            
+            setFilteredBubbles(prev => {
+              const searchTermLower = searchTerm.toLowerCase();
+              if (!searchTerm) return updatedBubbles;
+              
+              return updatedBubbles.filter(bubble => 
+                (bubble.topic && bubble.topic.toLowerCase().includes(searchTermLower)) ||
+                (bubble.name && bubble.name.toLowerCase().includes(searchTermLower)) ||
+                (bubble.username && bubble.username.toLowerCase().includes(searchTermLower))
+              );
+            });
+            
+            return updatedBubbles;
+          });
           
           // Update in most reflected bubbles
           setMostReflectedBubbles(currentBubbles => {
@@ -226,19 +274,32 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [toast]);
+  }, [toast, searchTerm]);
   
+  // Now, we will render the component with the updated search functionality:
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowFullView(!showFullView)}
-          className="text-sm"
-        >
-          {showFullView ? "Show List View" : "Show 3D View"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="relative w-64">
+            <input
+              type="text"
+              placeholder="Search bubbles or users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-slate-200 rounded-md"
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowFullView(!showFullView)}
+            className="text-sm"
+          >
+            {showFullView ? "Show List View" : "Show 3D View"}
+          </Button>
+        </div>
       </div>
       
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
@@ -246,9 +307,11 @@ const Dashboard = () => {
         <div className="flex justify-center py-6">
           <p>Loading bubbles...</p>
         </div>
-      ) : bubbles.length === 0 ? (
+      ) : filteredBubbles.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-gray-500">No bubbles found. Create the first one!</p>
+          <p className="text-gray-500">
+            {searchTerm ? "No bubbles found matching your search." : "No bubbles found. Create the first one!"}
+          </p>
         </div>
       ) : (
         <>
@@ -264,7 +327,7 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
           <BubbleOrbit 
-            bubbles={bubbles} 
+            bubbles={filteredBubbles} 
             mostReflectedBubbles={mostReflectedBubbles} 
             onCreateBubble={() => setDialogOpen(true)} 
           />
@@ -277,12 +340,12 @@ const Dashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle>All Bubbles</CardTitle>
             <CardDescription>
-              All active bubbles listed in chronological order
+              {searchTerm ? `Search results for "${searchTerm}"` : "All active bubbles listed in chronological order"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {bubbles.map((bubble) => (
+              {filteredBubbles.map((bubble) => (
                 <div 
                   key={bubble.id} 
                   className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
