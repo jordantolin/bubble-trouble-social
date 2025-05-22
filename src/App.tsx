@@ -1,5 +1,6 @@
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { GamificationProvider } from "./contexts/GamificationContext";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,7 +17,7 @@ import BubbleWorld from "@/components/BubbleWorld";
 import { useMockBubbles } from "@/hooks/useMockBubbles";
 import StreakAnimation from "@/components/StreakAnimation";
 import XPProgressBar from "@/components/XPProgressBar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Pages
 import Login from "./pages/Login";
@@ -34,11 +35,20 @@ const MainLayout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Set search from URL when component mounts
+  useEffect(() => {
+    const urlSearchTerm = searchParams.get('search');
+    if (urlSearchTerm) {
+      setSearchTerm(urlSearchTerm);
+    }
+  }, [searchParams]);
   
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchTerm.trim()) {
-      navigate("/?search=" + encodeURIComponent(searchTerm));
-      // The search functionality is handled in the Dashboard component
+      // Update URL and navigate to home with search parameter
+      navigate(`/?search=${encodeURIComponent(searchTerm)}`);
     }
   };
 

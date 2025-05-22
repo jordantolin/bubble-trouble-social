@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -139,8 +139,16 @@ const Dashboard = () => {
   const [filteredBubbles, setFilteredBubbles] = useState<Bubble[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
-  
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Handle search params from URL
+  useEffect(() => {
+    const urlSearchTerm = searchParams.get('search');
+    if (urlSearchTerm) {
+      setSearchTerm(urlSearchTerm);
+    }
+  }, [searchParams]);
   
   // Search function to filter bubbles
   useEffect(() => {
@@ -276,7 +284,6 @@ const Dashboard = () => {
     };
   }, [toast, searchTerm]);
   
-  // Now, we will render the component with the updated search functionality:
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -326,11 +333,16 @@ const Dashboard = () => {
               <CreateBubbleForm onClose={() => setDialogOpen(false)} />
             </DialogContent>
           </Dialog>
-          <BubbleOrbit 
-            bubbles={filteredBubbles} 
-            mostReflectedBubbles={mostReflectedBubbles} 
-            onCreateBubble={() => setDialogOpen(true)} 
-          />
+          
+          {showFullView ? (
+            <div className="h-[60vh] border rounded-lg overflow-hidden">
+              <BubbleOrbit 
+                bubbles={filteredBubbles} 
+                mostReflectedBubbles={mostReflectedBubbles} 
+                onCreateBubble={() => setDialogOpen(true)} 
+              />
+            </div>
+          ) : null}
         </>
       )}
       
