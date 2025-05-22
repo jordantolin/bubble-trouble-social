@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +10,8 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Send } from "lucide-react";
+import ReflectButton from "@/components/ReflectButton";
+import { useReflectionStatus } from "@/hooks/useReflectionStatus";
 
 // Type definitions
 interface Bubble {
@@ -44,6 +44,7 @@ const BubbleDetail = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isReflected } = useReflectionStatus(id || "");
 
   // Fetch bubble details
   useEffect(() => {
@@ -74,6 +75,21 @@ const BubbleDetail = () => {
     };
     
     fetchBubble();
+
+    // Subscribe to real-time updates for bubbles
+    const bubbleChannel = supabase
+      .channel('public:bubbles')
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'bubbles', filter: `id=eq.${id}` },
+        (payload) => {
+          setBubble(payload.new as Bubble);
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(bubbleChannel);
+    };
   }, [id, toast, navigate]);
 
   // Fetch messages and set up real-time subscription
@@ -196,18 +212,29 @@ const BubbleDetail = () => {
         <Button variant="ghost" onClick={() => navigate("/")} size="icon">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold">Bubble: {bubble.topic}</h1>
+        <h1 className="text-2xl font-bold">Bubble: {bubble?.topic}</h1>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>{bubble.name}</CardTitle>
-          <CardDescription>
-            Created by {bubble.username} on {format(new Date(bubble.created_at), 'PP')}
-          </CardDescription>
-          {bubble.description && (
-            <p className="text-gray-600 mt-2">{bubble.description}</p>
-          )}
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>{bubble?.name}</CardTitle>
+              <CardDescription>
+                Created by {bubble?.username} on {bubble?.created_at && format(new Date(bubble.created_at), 'PP')}
+              </CardDescription>
+              {bubble?.description && (
+                <p className="text-gray-600 mt-2">{bubble.description}</p>
+              )}
+            </div>
+            {bubble && (
+              <ReflectButton 
+                bubbleId={bubble.id}
+                reflectCount={bubble.reflect_count || 0}
+                initialReflected={isReflected}
+              />
+            )}
+          </div>
         </CardHeader>
       </Card>
       

@@ -19,6 +19,8 @@ import { useToast } from "@/components/ui/use-toast";
 import BubbleItem from "@/components/BubbleItem";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import ReflectButton from "@/components/ReflectButton";
+import { useReflectionStatus } from "@/hooks/useReflectionStatus";
 
 // Placeholder component for future 3D integration
 const ThreeDPlaceholder = () => (
@@ -156,9 +158,11 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
 // Dashboard page
 const Dashboard = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [mostReflectedBubbles, setMostReflectedBubbles] = useState<Bubble[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const navigate = useNavigate();
   
@@ -166,14 +170,27 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchBubbles = async () => {
       try {
-        const { data, error } = await supabase
+        // Get regular bubbles
+        const { data: regularData, error: regularError } = await supabase
           .from('bubbles')
           .select('*')
           .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (regularError) throw regularError;
         
-        setBubbles(data || []);
+        setBubbles(regularData || []);
+
+        // Get most reflected bubbles
+        const { data: reflectedData, error: reflectedError } = await supabase
+          .from('bubbles')
+          .select('*')
+          .order('reflect_count', { ascending: false })
+          .gt('reflect_count', 0)
+          .limit(5);
+
+        if (reflectedError) throw reflectedError;
+        
+        setMostReflectedBubbles(reflectedData || []);
       } catch (error) {
         console.error("Error fetching bubbles:", error);
         toast({
@@ -197,12 +214,91 @@ const Dashboard = () => {
           setBubbles(currentBubbles => [payload.new as Bubble, ...currentBubbles]);
         }
       )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'bubbles' },
+        (payload) => {
+          const updatedBubble = payload.new as Bubble;
+          
+          // Update in regular bubbles
+          setBubbles(currentBubbles => 
+            currentBubbles.map(bubble => 
+              bubble.id === updatedBubble.id ? updatedBubble : bubble
+            )
+          );
+          
+          // Update in most reflected bubbles
+          setMostReflectedBubbles(currentBubbles => {
+            // Check if the bubble exists in most reflected bubbles
+            const exists = currentBubbles.some(b => b.id === updatedBubble.id);
+            
+            if (exists) {
+              // If exists, update it
+              return currentBubbles
+                .map(b => b.id === updatedBubble.id ? updatedBubble : b)
+                .sort((a, b) => (b.reflect_count || 0) - (a.reflect_count || 0));
+            } else if ((updatedBubble.reflect_count || 0) > 0) {
+              // If doesn't exist but has reflections, add it and sort
+              return [...currentBubbles, updatedBubble]
+                .sort((a, b) => (b.reflect_count || 0) - (a.reflect_count || 0))
+                .slice(0, 5);
+            }
+            
+            return currentBubbles;
+          });
+        }
+      )
       .subscribe();
     
     return () => {
       supabase.removeChannel(channel);
     };
   }, [toast]);
+
+  // Render a bubble item
+  const renderBubbleItem = (bubble: Bubble, isReflected = false) => {
+    // Calculate a size multiplier based on reflection count
+    const sizeClass = bubble.reflect_count && bubble.reflect_count > 10 
+      ? "border-2 border-bubble-yellow-dark bg-bubble-yellow-light" 
+      : bubble.reflect_count && bubble.reflect_count > 5
+        ? "border border-bubble-yellow" 
+        : "";
+    
+    return (
+      <div 
+        key={bubble.id} 
+        className={`p-4 border rounded-lg hover:bg-gray-50 transition ${sizeClass}`}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-medium">{bubble.name}</h3>
+              <p className="text-sm text-gray-500">By {bubble.username}</p>
+            </div>
+          </div>
+          <ReflectButton 
+            bubbleId={bubble.id} 
+            reflectCount={bubble.reflect_count || 0}
+          />
+        </div>
+        <div 
+          className="space-y-2 cursor-pointer"
+          onClick={() => navigate(`/bubble/${bubble.id}`)}
+        >
+          <p className="text-sm font-medium">Topic: {bubble.topic}</p>
+          {bubble.description && (
+            <p className="text-sm text-gray-600">{bubble.description}</p>
+          )}
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Created: {format(new Date(bubble.created_at), 'PPp')}</span>
+            <span>Reflections: {bubble.reflect_count || 0}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
   
   return (
     <div className="space-y-6">
@@ -226,6 +322,24 @@ const Dashboard = () => {
       
       <ThreeDPlaceholder />
       
+      {/* Most Reflected Bubbles Section */}
+      {mostReflectedBubbles.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Most Reflected</CardTitle>
+            <CardDescription>
+              Bubbles that have resonated most with the community
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mostReflectedBubbles.map((bubble) => renderBubbleItem(bubble, true))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Latest Bubbles Section */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Latest Bubbles</CardTitle>
@@ -244,33 +358,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {bubbles.map((bubble) => (
-                <div 
-                  key={bubble.id} 
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
-                  onClick={() => navigate(`/bubble/${bubble.id}`)}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Avatar>
-                      <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{bubble.name}</h3>
-                      <p className="text-sm text-gray-500">By {bubble.username}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Topic: {bubble.topic}</p>
-                    {bubble.description && (
-                      <p className="text-sm text-gray-600">{bubble.description}</p>
-                    )}
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>Created: {format(new Date(bubble.created_at), 'PPp')}</span>
-                      <span>Reflections: {bubble.reflect_count || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {bubbles.map((bubble) => renderBubbleItem(bubble))}
             </div>
           )}
         </CardContent>
