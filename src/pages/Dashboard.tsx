@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -166,12 +167,12 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           }}
           disabled={isSubmitting || isSuccess}
         >
-          <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500]">
+          <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500] z-10">
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent position="popper" className="bg-white z-50 max-h-60 overflow-auto">
             {TOPIC_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category} className="cursor-pointer">
+              <SelectItem key={category} value={category} className="cursor-pointer hover:bg-gray-100">
                 {category}
               </SelectItem>
             ))}
