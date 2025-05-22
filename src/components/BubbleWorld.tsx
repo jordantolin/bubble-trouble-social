@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
@@ -266,7 +265,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
           outlineWidth={0.02}
           outlineColor="#000000"
           maxWidth={size * 4}
-          lookAt={[0, 0, 0]}
         >
           {bubble.topic}
         </Text>
@@ -280,7 +278,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
           anchorY="middle"
           outlineWidth={0.02}
           outlineColor="#000000"
-          lookAt={[0, 0, 0]}
         >
           {bubble.username || "Anonymous"}
         </Text>
@@ -295,7 +292,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             anchorY="middle"
             outlineWidth={0.02}
             outlineColor="#000000"
-            lookAt={[0, 0, 0]}
           >
             {`★ ${bubble.reflect_count || 0}`}
           </Text>
