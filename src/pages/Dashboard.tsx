@@ -31,28 +31,20 @@ import {
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
 
-// Updated Topic categories for bubbles with enhanced list
+// Updated Topic categories with cleaner list based on the user's requirement
 const TOPIC_CATEGORIES = [
-  "AI & Technology",
+  "Technology",
   "Philosophy",
-  "Mental Health",
-  "Creativity & Art",
+  "Art",
+  "Science",
+  "Society",
   "Spirituality",
-  "Personal Growth",
-  "Relationships",
-  "Startups & Innovation",
-  "Consciousness",
-  "Dreams & Symbolism",
-  "Quantum Physics",
-  "Nature & Ecology",
-  "Mysticism",
-  "Gaming & Virtual Worlds",
-  "Society & Culture",
-  "Emotions & Self-Awareness",
-  "Science & Curiosity",
-  "Time & Perception",
-  "Cosmic Theories",
-  "Other"
+  "Economy",
+  "Mythology",
+  "Mental Health",
+  "Politics",
+  "Environment",
+  "Mysticism"
 ];
 
 // Create Bubble Form Component
@@ -175,7 +167,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           </SelectTrigger>
           <SelectContent 
             position="popper" 
-            className="bg-white z-[200] max-h-60 overflow-auto shadow-lg"
+            className="bg-white z-[250] max-h-60 overflow-auto shadow-lg"
             sideOffset={5}
           >
             {TOPIC_CATEGORIES.map((category) => (
@@ -205,15 +197,16 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       
       <div className="flex justify-end space-x-2 pt-2">
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-          <Button 
-            variant="outline" 
-            type="button" 
-            onClick={onClose}
-            disabled={isSubmitting || isSuccess}
-            className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
-          >
-            Cancel
-          </Button>
+          <DialogClose asChild>
+            <Button 
+              variant="outline" 
+              type="button"
+              disabled={isSubmitting || isSuccess}
+              className="border-[#FFD500] text-[#FFD500] hover:bg-[#FFD500]/10"
+            >
+              Cancel
+            </Button>
+          </DialogClose>
         </motion.div>
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button 
@@ -444,10 +437,17 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
-            console.log("Dialog state changed:", open);
-            setDialogOpen(open);
-          }}>
+          <Dialog 
+            open={dialogOpen} 
+            onOpenChange={(open) => {
+              console.log("Dialog state changed:", open);
+              if (!open) {
+                // When closing, ensure we properly update our state
+                handleCloseDialog();
+              }
+              setDialogOpen(open);
+            }}
+          >
             <DialogContent className="bg-gradient-to-b from-white to-[#FFFCF0] border-[#FFD500]/20 rounded-xl">
               <DialogHeader>
                 <DialogTitle className="text-gray-800">Create a New Bubble</DialogTitle>
