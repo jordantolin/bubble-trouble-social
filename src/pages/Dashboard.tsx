@@ -167,12 +167,23 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           }}
           disabled={isSubmitting || isSuccess}
         >
-          <SelectTrigger id="topic" className="w-full border-[#FFD500] focus:ring-[#FFD500] z-10">
+          <SelectTrigger 
+            id="topic" 
+            className="w-full border-[#FFD500] focus:ring-[#FFD500] cursor-pointer"
+          >
             <SelectValue placeholder="Select a topic" />
           </SelectTrigger>
-          <SelectContent position="popper" className="bg-white z-50 max-h-60 overflow-auto">
+          <SelectContent 
+            position="popper" 
+            className="bg-white z-[100] max-h-60 overflow-auto shadow-lg"
+            sideOffset={5}
+          >
             {TOPIC_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category} className="cursor-pointer hover:bg-gray-100">
+              <SelectItem 
+                key={category} 
+                value={category} 
+                className="cursor-pointer hover:bg-gray-100"
+              >
                 {category}
               </SelectItem>
             ))}
