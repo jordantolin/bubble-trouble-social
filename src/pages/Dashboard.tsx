@@ -134,6 +134,7 @@ const Dashboard = () => {
   const [mostReflectedBubbles, setMostReflectedBubbles] = useState<Bubble[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showFullView, setShowFullView] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -231,6 +232,13 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Bubble Feed</h1>
+        <Button 
+          variant="outline" 
+          onClick={() => setShowFullView(!showFullView)}
+          className="text-sm"
+        >
+          {showFullView ? "Show List View" : "Show 3D View"}
+        </Button>
       </div>
       
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
@@ -263,67 +271,69 @@ const Dashboard = () => {
         </>
       )}
       
-      {/* List View of Bubbles (Alternative) */}
-      <Card className="mt-8">
-        <CardHeader className="pb-3">
-          <CardTitle>All Bubbles</CardTitle>
-          <CardDescription>
-            All active bubbles listed in chronological order
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {bubbles.map((bubble) => (
-              <div 
-                key={bubble.id} 
-                className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
-                onClick={() => navigate(`/bubble/${bubble.id}`)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{bubble.name}</h3>
-                      <p className="text-sm text-gray-500">By {bubble.username}</p>
+      {/* List View of Bubbles (now conditionally rendered) */}
+      {!showFullView && (
+        <Card className="mt-8">
+          <CardHeader className="pb-3">
+            <CardTitle>All Bubbles</CardTitle>
+            <CardDescription>
+              All active bubbles listed in chronological order
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {bubbles.map((bubble) => (
+                <div 
+                  key={bubble.id} 
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                  onClick={() => navigate(`/bubble/${bubble.id}`)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{bubble.name}</h3>
+                        <p className="text-sm text-gray-500">By {bubble.username}</p>
+                      </div>
                     </div>
+                    <ReflectButton 
+                      bubbleId={bubble.id} 
+                      reflectCount={bubble.reflect_count || 0}
+                    />
                   </div>
-                  <ReflectButton 
-                    bubbleId={bubble.id} 
-                    reflectCount={bubble.reflect_count || 0}
-                  />
+                  <p className="text-sm font-medium">Topic: {bubble.topic}</p>
+                  {bubble.description && (
+                    <p className="text-sm text-gray-600">{bubble.description}</p>
+                  )}
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>Reflections: {bubble.reflect_count || 0}</span>
+                  </div>
                 </div>
-                <p className="text-sm font-medium">Topic: {bubble.topic}</p>
-                {bubble.description && (
-                  <p className="text-sm text-gray-600">{bubble.description}</p>
-                )}
-                <div className="flex justify-between text-xs text-gray-500 mt-2">
-                  <span>Reflections: {bubble.reflect_count || 0}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
-      <Card>
-        <CardHeader>
+      {/* Move suggested connections to a corner card */}
+      <Card className="mt-8 max-w-xs ml-auto">
+        <CardHeader className="pb-2">
           <CardTitle>Suggested Connections</CardTitle>
-          <CardDescription>People you might want to connect with</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-2">
             {["alex_designer", "maria_code", "dev_john"].map((name, index) => (
-              <div key={index} className="flex flex-col items-center space-y-2">
-                <Avatar className="h-16 w-16">
+              <div key={index} className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg">
+                <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-bubble-yellow text-white">
                     {name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-center">
-                  <p className="text-sm font-medium">{name}</p>
-                  <Button variant="outline" size="sm" className="mt-1">
+                <div>
+                  <p className="text-xs font-medium">{name}</p>
+                  <Button variant="outline" size="sm" className="mt-1 h-6 text-xs py-0">
                     Connect
                   </Button>
                 </div>
