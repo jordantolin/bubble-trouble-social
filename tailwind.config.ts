@@ -112,6 +112,28 @@ export default {
 				'bubble-fade': {
 					from: { opacity: '1' },
 					to: { opacity: '0' }
+				},
+				'bubble-ripple': {
+					'0%': {
+						boxShadow: '0 0 0 0 rgba(255, 208, 0, 0.7)',
+						transform: 'scale(1)'
+					},
+					'50%': {
+						boxShadow: '0 0 0 10px rgba(255, 208, 0, 0)',
+						transform: 'scale(1.05)'
+					},
+					'100%': {
+						boxShadow: '0 0 0 0 rgba(255, 208, 0, 0)',
+						transform: 'scale(1)'
+					}
+				},
+				'bubble-orbit': {
+					from: {
+						transform: 'rotate(0deg) translateX(150px) rotate(0deg)'
+					},
+					to: {
+						transform: 'rotate(360deg) translateX(150px) rotate(-360deg)'
+					}
 				}
 			},
 			animation: {
@@ -119,7 +141,10 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'bubble-float': 'bubble-float 3s ease-in-out infinite',
 				'bubble-zoom': 'bubble-zoom 0.8s ease-out forwards',
-				'bubble-fade': 'bubble-fade 0.5s ease-out forwards'
+				'bubble-fade': 'bubble-fade 0.5s ease-out forwards',
+				'bubble-ripple': 'bubble-ripple 0.6s ease-out',
+				'bubble-orbit-inner': 'bubble-orbit 30s linear infinite',
+				'bubble-orbit-outer': 'bubble-orbit 60s linear infinite reverse'
 			}
 		}
 	},

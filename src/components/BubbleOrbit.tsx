@@ -19,6 +19,7 @@ interface BubbleOrbitProps {
 const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles }) => {
   const navigate = useNavigate();
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
+  const [rippleBubbleId, setRippleBubbleId] = useState<string | null>(null);
   const navigationTimeoutRef = useRef<number | null>(null);
 
   // Combine all bubbles for display
@@ -42,7 +43,15 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
       return;
     }
     
-    // Set selected bubble to trigger animations
+    // Trigger ripple animation first
+    setRippleBubbleId(id);
+    
+    // Clear ripple animation after it completes
+    setTimeout(() => {
+      setRippleBubbleId(null);
+    }, 600);
+    
+    // Set selected bubble to trigger zoom/fade animations
     setSelectedBubbleId(id);
     
     // Navigate after animation completes
@@ -72,6 +81,7 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
             const delay = index * 0.5; // stagger animation
             const size = getBubbleSize(bubble.reflect_count || 0);
             const isSelected = selectedBubbleId === bubble.id;
+            const hasRipple = rippleBubbleId === bubble.id;
             
             return (
               <TooltipProvider key={bubble.id}>
@@ -80,10 +90,10 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
                     <HoverCard open={isSelected ? false : undefined}>
                       <HoverCardTrigger asChild>
                         <div 
-                          className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${
+                          className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
                             isSelected ? 'bubble-zoom-in' : 
                             selectedBubbleId ? 'bubble-fade-out' : 'animate-float'
-                          }`}
+                          } ${hasRipple ? 'animate-ripple' : ''}`}
                           style={{
                             width: `${size}px`,
                             height: `${size}px`,
@@ -138,16 +148,17 @@ const BubbleOrbit: React.FC<BubbleOrbitProps> = ({ bubbles, mostReflectedBubbles
               const delay = index * 0.3; // stagger animation
               const size = getBubbleSize(bubble.reflect_count || 0);
               const isSelected = selectedBubbleId === bubble.id;
+              const hasRipple = rippleBubbleId === bubble.id;
               
               return (
                 <TooltipProvider key={bubble.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div 
-                        className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${
+                        className={`absolute bubble cursor-pointer ${getReflectionClass(bubble.reflect_count || 0)} ${getGlowClass(bubble.reflect_count || 0)} ${
                           isSelected ? 'bubble-zoom-in' : 
                           selectedBubbleId ? 'bubble-fade-out' : ''
-                        }`}
+                        } ${hasRipple ? 'animate-ripple' : ''}`}
                         style={{
                           width: `${size}px`,
                           height: `${size}px`,
@@ -197,6 +208,20 @@ const getReflectionClass = (reflectCount: number): string => {
     return "bg-yellow-50 text-gray-700 border border-yellow-200";
   }
   return "bg-gray-100 text-gray-600 border border-gray-200";
+};
+
+// Helper function to get glow class based on reflection count
+const getGlowClass = (reflectCount: number): string => {
+  if (reflectCount >= 10) {
+    return "glow-strong";
+  }
+  if (reflectCount >= 5) {
+    return "glow-medium";
+  }
+  if (reflectCount >= 1) {
+    return "glow-light";
+  }
+  return "";
 };
 
 export default BubbleOrbit;
