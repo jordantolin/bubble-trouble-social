@@ -181,7 +181,7 @@ const BubbleDetail = () => {
   const handleSubmitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.id) {
       toast({
         title: "Authentication required",
         description: "You need to be logged in to send messages.",
@@ -219,15 +219,19 @@ const BubbleDetail = () => {
       }
       
       // For real bubbles, send to Supabase
+      const messageData = {
+        bubble_id: id,
+        content: newMessage.trim(),
+        message: newMessage.trim(),
+        username: user?.username || 'Anonymous',
+        user_id: user.id
+      };
+      
+      console.log("Sending message:", messageData);
+      
       const { error } = await supabase
         .from('bubble_messages')
-        .insert({
-          bubble_id: id,
-          content: newMessage.trim(),
-          message: newMessage.trim(),
-          username: user?.username || '',
-          user_id: user?.id || null
-        });
+        .insert(messageData);
       
       if (error) throw error;
       

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,15 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       });
       return;
     }
+
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to create bubbles",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -49,17 +59,19 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       
-      // Insert new bubble
+      console.log("Creating bubble with author_id:", user.id);
+      
+      // Insert new bubble with correct fields (removed 'message' field which doesn't exist)
       const { data, error } = await supabase
         .from('bubbles')
         .insert({
           topic,
           name,
           description: description || null,
-          username: user?.username || user?.email?.split('@')[0] || '',
+          username: user?.username || 'Anonymous',
+          author_id: user.id, // Ensure author_id is set correctly from authenticated user
           expires_at: expiresAt.toISOString(),
           size: 'sm', // Default size as string to match DB
-          message: "", // Adding this to fix the TypeScript error
         })
         .select();
       

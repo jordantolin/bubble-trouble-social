@@ -13,7 +13,8 @@ export const useReflectionStatus = (bubbleId: string) => {
 
   useEffect(() => {
     const checkReflectionStatus = async () => {
-      if (!user?.username || !bubbleId) {
+      // Early return if no user or username or bubbleId
+      if (!user?.id || !user?.username || !bubbleId) {
         setIsLoading(false);
         return;
       }
@@ -73,7 +74,7 @@ export const useReflectionStatus = (bubbleId: string) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [bubbleId, user?.username, isMockId]);
+  }, [bubbleId, user?.username, user?.id, isMockId]);
 
   return { isReflected, isLoading };
 };

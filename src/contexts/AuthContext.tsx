@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
-            avatarUrl: session.user.user_metadata.avatar_url,
+            avatarUrl: session.user.user_metadata.avatarUrl || session.user.user_metadata.avatar_url,
           });
         } else {
           setUser(null);
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: session.user.id,
           email: session.user.email || '',
           username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
-          avatarUrl: session.user.user_metadata.avatar_url,
+          avatarUrl: session.user.user_metadata.avatarUrl || session.user.user_metadata.avatar_url,
         });
       }
       setIsLoading(false);
@@ -104,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         options: {
           data: {
             username,
+            avatarUrl: null, // Use camelCase for consistency
           }
         }
       });
@@ -149,8 +150,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (!session?.user) throw new Error("No user logged in");
       
+      // Convert from camelCase to snake_case for Supabase metadata
+      const metadataUpdate = {
+        username: userData.username,
+        avatar_url: userData.avatarUrl,
+      };
+      
       const { error } = await supabase.auth.updateUser({
-        data: userData
+        data: metadataUpdate
       });
       
       if (error) throw error;

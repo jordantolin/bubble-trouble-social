@@ -23,11 +23,22 @@ const ReflectButton = ({
   const { toast } = useToast();
 
   const handleReflect = async () => {
-    if (!user?.username || isReflected) return;
+    if (!user?.id || !user?.username || isReflected) {
+      if (!user?.id) {
+        toast({
+          title: "Authentication required",
+          description: "You need to be logged in to reflect bubbles.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
     
     setIsLoading(true);
     
     try {
+      console.log("Reflecting bubble:", bubbleId, "by user:", user.username);
+      
       const { error } = await supabase
         .from("reflects")
         .insert({

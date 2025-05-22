@@ -9,10 +9,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, 
   SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { NavLink } from "react-router-dom";
-import { Home, Users, MessageCircle, Settings, Search, Bell, Menu } from "lucide-react";
+import { Home, Users, MessageCircle, Settings, Bell, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import BubbleWorld from "@/components/BubbleWorld";
 import { useMockBubbles } from "@/hooks/useMockBubbles";
 import StreakAnimation from "@/components/StreakAnimation";
@@ -34,24 +33,7 @@ const MainLayout = () => {
   const { bubbles } = useMockBubbles(20);
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchParams, setSearchParams] = useSearchParams();
   
-  // Set search from URL when component mounts
-  useEffect(() => {
-    const urlSearchTerm = searchParams.get('search');
-    if (urlSearchTerm) {
-      setSearchTerm(urlSearchTerm);
-    }
-  }, [searchParams]);
-  
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchTerm.trim()) {
-      // Update URL and navigate to home with search parameter
-      navigate(`/?search=${encodeURIComponent(searchTerm)}`);
-    }
-  };
-
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
       {/* Sidebar */}
@@ -127,16 +109,7 @@ const MainLayout = () => {
             <SidebarTrigger className="mr-4">
               <Menu size={20} />
             </SidebarTrigger>
-            <div className="relative w-64">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-              <Input 
-                placeholder="Search bubbles..." 
-                className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleSearch}
-              />
-            </div>
+            {/* Removed duplicate search bar */}
           </div>
           
           <div className="flex items-center gap-4">
