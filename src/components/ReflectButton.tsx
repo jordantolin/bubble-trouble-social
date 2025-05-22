@@ -1,9 +1,10 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { useReflectionStatus } from "@/hooks/useReflectionStatus";
+import { useGamification } from "@/contexts/GamificationContext";
 
 export interface ReflectButtonProps {
   bubbleId: string;
@@ -16,11 +17,17 @@ const ReflectButton = ({
   reflectCount,
   initialReflected = false
 }: ReflectButtonProps) => {
-  const [isReflected, setIsReflected] = useState(initialReflected);
   const [count, setCount] = useState(reflectCount);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isReflected } = useReflectionStatus(bubbleId);
+  const { updateLastActive } = useGamification();
+  
+  // Keep local count in sync with reflectCount prop
+  useEffect(() => {
+    setCount(reflectCount);
+  }, [reflectCount]);
 
   const handleReflect = async () => {
     if (!user?.id || !user?.username || isReflected) {
@@ -48,12 +55,15 @@ const ReflectButton = ({
       
       if (error) throw error;
       
-      setIsReflected(true);
       setCount(prev => prev + 1);
+      
+      // Update last active to trigger potential streak
+      await updateLastActive();
       
       toast({
         title: "Success!",
         description: "You've reflected this bubble.",
+        variant: "success",
       });
     } catch (error: any) {
       toast({
@@ -74,11 +84,16 @@ const ReflectButton = ({
         size="sm"
         onClick={handleReflect}
         disabled={isReflected || isLoading || !user?.username}
-        className={isReflected ? "bg-gray-200 text-gray-700" : "bg-bubble-yellow hover:bg-bubble-yellow-dark text-white"}
+        className={isReflected 
+          ? "bg-gray-200 text-gray-700" 
+          : "bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white"
+        }
       >
         {isLoading ? "Processing..." : isReflected ? "Reflected" : "Reflect"}
       </Button>
-      <span className="text-sm font-medium">{count}</span>
+      <span className={`text-sm font-medium ${isReflected ? "text-bubble-yellow-dark" : ""}`}>
+        {count}
+      </span>
     </div>
   );
 };

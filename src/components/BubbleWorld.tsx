@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Billboard } from '@react-three/drei';
@@ -5,7 +6,6 @@ import { Bubble } from '@/types/bubble';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { useReflectionStatus } from '@/hooks/useReflectionStatus';
-import { Star } from 'lucide-react';
 
 interface BubbleProps {
   position: [number, number, number];
@@ -28,7 +28,7 @@ const CameraController = ({ targetPosition, isAnimating, onAnimationComplete }: 
   onAnimationComplete: () => void
 }) => {
   const { camera } = useThree();
-  const initialPos = useRef(new THREE.Vector3(0, 0, 20)); // Adjusted initial camera distance for better view
+  const initialPos = useRef(new THREE.Vector3(0, 0, 20));
   
   useFrame(() => {
     if (isAnimating && targetPosition) {
@@ -39,7 +39,7 @@ const CameraController = ({ targetPosition, isAnimating, onAnimationComplete }: 
       // Move camera closer to bubble (but stop short to see it properly)
       if (cameraDirection.length() > 3) {
         cameraDirection.normalize();
-        cameraDirection.multiplyScalar(0.2); // Adjust speed of camera movement
+        cameraDirection.multiplyScalar(0.2);
         camera.position.add(cameraDirection);
       } else {
         // Animation complete - trigger callback
@@ -72,17 +72,17 @@ const CoreSphere = () => {
     <mesh ref={ref} position={[0, 0, 0]}>
       <sphereGeometry args={[1.2, 32, 32]} />
       <meshStandardMaterial 
-        color="#FFE066" // Lightened core color
-        metalness={0.4}  // Reduced metalness for brighter appearance
+        color="#FFE066" 
+        metalness={0.4}
         roughness={0.2}
         emissive="#FFE066"
-        emissiveIntensity={0.7} // Increased emissive intensity
+        emissiveIntensity={0.8}
       />
     </mesh>
   );
 };
 
-// Enhanced bubble repulsion system
+// Enhanced bubble repulsion system with stronger forces
 const useRepulsionSystem = (
   bubbleIndex: number,
   allPositions: React.MutableRefObject<THREE.Vector3[]>,
@@ -103,7 +103,7 @@ const useRepulsionSystem = (
     return new THREE.Vector3(x, y, z);
   };
   
-  // Apply repulsion forces between bubbles with improved spacing
+  // Apply stronger repulsion forces between bubbles with improved spacing
   const applyRepulsion = (basePos: THREE.Vector3) => {
     if (!allPositions.current[bubbleIndex]) {
       allPositions.current[bubbleIndex] = basePos.clone();
@@ -120,13 +120,13 @@ const useRepulsionSystem = (
         const direction = finalPosition.clone().sub(otherPos);
         const distance = direction.length();
         
-        // Apply stronger repulsion if bubbles are too close
-        // Increased minimum distance from 3.0 to 3.5
-        if (distance < 3.5) {
+        // Apply much stronger repulsion if bubbles are too close
+        // Increased minimum distance from 3.5 to 4.5 for better spacing
+        if (distance < 4.5) {
           direction.normalize();
           // The closer they are, the stronger the repulsion
-          // Increased repulsion strength from 0.08 to 0.12
-          const repulsionStrength = (3.5 - distance) * 0.12;
+          // Increased repulsion strength significantly from 0.12 to 0.25
+          const repulsionStrength = (4.5 - distance) * 0.25;
           direction.multiplyScalar(repulsionStrength);
           finalPosition.add(direction);
         }
@@ -139,16 +139,6 @@ const useRepulsionSystem = (
   };
   
   return { calcBasePosition, applyRepulsion };
-};
-
-// Simplified Star Icon using a simple mesh plane with texture
-const StarIcon = ({ position, size }: { position: [number, number, number], size: number }) => {
-  return (
-    <mesh position={position}>
-      <planeGeometry args={[size * 0.8, size * 0.8]} />
-      <meshBasicMaterial color="#FFE066" transparent opacity={1} side={THREE.DoubleSide} />
-    </mesh>
-  );
 };
 
 // Enhanced bubble with improved text overlays
@@ -197,7 +187,6 @@ const BubbleSphere: React.FC<BubbleProps> = ({
         if (textRef.current) {
           // Position text directly above the bubble with proper vertical spacing
           textRef.current.position.copy(finalPosition);
-          // No need to adjust Y as Billboard component will handle positioning
         }
         
         // Rotation animation
@@ -218,19 +207,19 @@ const BubbleSphere: React.FC<BubbleProps> = ({
     onBubbleClick(bubble.id);
   };
   
-  // Calculate emissive intensity based on reflection count - increased base values
+  // Calculate emissive intensity based on reflection count - increased base values for more glow
   const reflectCount = bubble.reflect_count || 0;
-  const emissiveIntensity = hovered ? 0.9 : isReflected ? 0.8 : 
-                            (reflectCount >= 10 ? 0.9 : 
-                             reflectCount >= 5 ? 0.7 : 
-                             reflectCount >= 1 ? 0.5 : 0.4);
+  const emissiveIntensity = hovered ? 1.2 : isReflected ? 1.0 : 
+                            (reflectCount >= 10 ? 1.2 : 
+                             reflectCount >= 5 ? 1.0 : 
+                             reflectCount >= 1 ? 0.8 : 0.6);
   
   // Calculate the text size based on bubble size - improved scaling
   const textScaleFactor = Math.max(0.2, Math.min(0.5, size * 0.25));
   const countTextSize = textScaleFactor * 0.8;
   
   // Calculate vertical offset for text based on bubble size
-  const verticalOffset = size * 1.2; // Increased spacing for better separation
+  const verticalOffset = size * 1.2;
   
   return (
     <group>
@@ -247,11 +236,11 @@ const BubbleSphere: React.FC<BubbleProps> = ({
           color={color} 
           emissive={color}
           emissiveIntensity={emissiveIntensity}
-          metalness={0.4}  // Reduced metalness for more solid appearance
-          roughness={0.4}  // Increased roughness slightly
+          metalness={0.6}  // Increased metalness for more glossy appearance
+          roughness={0.2}  // Decreased roughness for shinier appearance
           clearcoat={1.0}  // Enhanced clearcoat for better light reflection
           clearcoatRoughness={0.1}
-          reflectivity={0.5}
+          reflectivity={0.8} // Increased reflectivity
           transparent={false}
           opacity={1.0}
         />
@@ -275,11 +264,12 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             color="white"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.04}
+            outlineWidth={0.05} // Increased outline width for better readability
             outlineColor="#000000"
-            outlineOpacity={0.8}
+            outlineOpacity={0.9} // Increased opacity for stronger outline
             maxWidth={size * 4}
             textAlign="center"
+            font="/fonts/Inter-Bold.woff" // Using a consistent font
           >
             {bubble.topic}
           </Text>
@@ -291,9 +281,10 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             color="white"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
+            outlineWidth={0.03}
             outlineColor="#000000"
-            outlineOpacity={0.8}
+            outlineOpacity={0.9}
+            font="/fonts/Inter-Medium.woff"
           >
             {bubble.username || "Anonymous"}
           </Text>
@@ -305,19 +296,20 @@ const BubbleSphere: React.FC<BubbleProps> = ({
             color="white"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
+            outlineWidth={0.03}
             outlineColor="#000000"
-            outlineOpacity={0.8}
+            outlineOpacity={0.9}
+            font="/fonts/Inter-Medium.woff"
           >
             {`★ ${bubble.reflect_count || 0}`}
           </Text>
         </Billboard>
       </group>
       
-      {/* Background glow effect - enhanced for better visibility */}
+      {/* Enhanced background glow effect */}
       {hovered && (
         <mesh position={[ref.current?.position.x || 0, ref.current?.position.y || 0, ref.current?.position.z || 0]}>
-          <sphereGeometry args={[size * 1.3, 20, 20]} />
+          <sphereGeometry args={[size * 1.3, 28, 28]} />
           <meshBasicMaterial color={color} transparent opacity={0.2} />
         </mesh>
       )}
@@ -349,15 +341,30 @@ const BubbleTooltip: React.FC<{bubble: Bubble | null, position: {x: number, y: n
   );
 };
 
-// Environment to add lighting and atmosphere - brightened
+// Environment to add enhanced lighting and atmosphere
 const BubbleEnvironment = () => {
   return (
     <>
-      <ambientLight intensity={1.2} /> {/* Increased ambient light intensity */}
-      <pointLight position={[10, 10, 10]} intensity={2.2} color="#ffffff" /> {/* Increased point light intensity */}
-      <pointLight position={[-10, -10, -10]} intensity={1.6} color="#FFE166" /> {/* Increased yellow light intensity */}
+      <ambientLight intensity={1.5} /> {/* Increased ambient light intensity */}
+      <pointLight position={[10, 10, 10]} intensity={2.5} color="#FFFFFF" /> {/* Increased point light intensity */}
+      <pointLight position={[-10, -10, -10]} intensity={1.8} color="#FFE166" /> {/* Increased yellow light intensity */}
       <fog attach="fog" args={['#000', 25, 50]} /> {/* Adjusted fog to be more distant */}
     </>
+  );
+};
+
+// Empty state component
+const EmptyBubblesState = () => {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+      <div className="w-24 h-24 mb-6 relative">
+        <div className="animate-float absolute w-16 h-16 rounded-full bg-bubble-yellow opacity-60 left-4"></div>
+        <div className="animate-float absolute w-12 h-12 rounded-full bg-bubble-yellow opacity-80 right-0 top-4" style={{ animationDelay: '0.5s' }}></div>
+        <div className="animate-float absolute w-8 h-8 rounded-full bg-bubble-yellow opacity-70 left-2 bottom-0" style={{ animationDelay: '1s' }}></div>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No Bubbles Yet</h3>
+      <p className="text-gray-300 text-center max-w-xs">Create your first bubble to start a conversation or explore trending topics</p>
+    </div>
   );
 };
 
@@ -395,7 +402,7 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
       const orbitRadius = 3 + (bubbleIndex % 5);
       const orbitOffset = bubbleIndex * 0.5;
       const x = Math.cos(orbitOffset) * orbitRadius;
-      const y = Math.sin(bubbleIndex * 0.7) * 3.5; // Fixed: replaced 'index' with 'bubbleIndex'
+      const y = Math.sin(bubbleIndex * 0.7) * 3.5;
       const z = Math.sin(orbitOffset) * orbitRadius;
       
       // Set the target position for camera animation
@@ -420,7 +427,22 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
       <Canvas camera={{ position: [0, 0, 20], fov: 60 }}> {/* Adjusted camera distance for better initial view */}
         <BubbleEnvironment />
         
-        {!isAnimating && <OrbitControls enableZoom={true} enablePan={false} minDistance={10} maxDistance={40} />} {/* Limited camera zoom range */}
+        {!isAnimating && 
+          <OrbitControls 
+            enableZoom={true} 
+            enablePan={false} 
+            minDistance={8}
+            maxDistance={50}
+            enableRotate={true}
+            // Enable full 360-degree rotation on all axes
+            minPolarAngle={0} 
+            maxPolarAngle={Math.PI}
+            minAzimuthAngle={-Infinity}
+            maxAzimuthAngle={Infinity}
+            rotateSpeed={0.5}
+          />
+        }
+        
         <CameraController 
           targetPosition={targetPosition} 
           isAnimating={isAnimating}
@@ -430,80 +452,85 @@ const BubbleWorld: React.FC<BubbleWorldProps> = ({ bubbles }) => {
         {/* Core sphere at the center */}
         {!isAnimating && <CoreSphere />}
         
-        {bubbles.map((bubble, index) => {
-          // Calculate orbital parameters with more variation
-          const orbitGroup = index % 5; // 5 main orbit groups for more distribution
-          const baseRadius = 5 + orbitGroup * 2.0; // Increased radius and spacing between groups
-          const radiusVariation = (index % 7) * 0.6; // More variation within groups
-          const orbitRadius = baseRadius + radiusVariation;
-          
-          // Orbit speed and initial angle with more variation
-          const baseSpeed = 0.0006 + (orbitGroup * 0.0002); // Slightly slower base speed
-          const speedVariation = (index % 9) * 0.00012;
-          const orbitSpeed = baseSpeed - speedVariation;
-          const orbitOffset = index * (Math.PI / (bubbles.length / 2)); // Distribute bubbles evenly
-          
-          // Starting position on the orbit
-          const startAngle = orbitOffset;
-          const x = Math.cos(startAngle) * orbitRadius;
-          const y = Math.sin(index * 0.7) * 3.5; // More vertical distribution
-          const z = Math.sin(startAngle) * orbitRadius;
-          
-          // Determine size and color based on reflection count more dramatically
-          const reflectCount = bubble.reflect_count || 0;
-          
-          // More dramatic size scaling
-          let size = 0.8 + (reflectCount * 0.15); // Increased base size
-          // Cap size at a reasonable maximum
-          size = Math.min(size, 2.8);
-          
-          // Brighter color palette based on reflect count
-          let color;
-          if (reflectCount >= 15) {
-            color = '#FFE066'; // Brightened gold for highly reflected bubbles
-          } else if (reflectCount >= 10) {
-            color = '#FFD000'; // Brightened gold
-          } else if (reflectCount >= 5) {
-            color = '#FFBB33'; // Brightened orange
-          } else if (reflectCount >= 1) {
-            color = '#FFD633'; // Brightened yellow-orange
-          } else {
-            color = '#FFE066'; // Default brightened yellow
-          }
-          
-          // Configure event handlers for tooltip
-          const handlePointerOver = () => {
-            setHoveredBubble(bubble);
-            setTooltipVisible(true);
-          };
-          
-          const handlePointerOut = () => {
-            setTooltipVisible(false);
-            setHoveredBubble(null);
-          };
-          
-          return (
-            <group 
-              key={bubble.id}
-              onPointerOver={handlePointerOver}
-              onPointerOut={handlePointerOut}
-            >
-              <BubbleSphere
-                position={[x, y, z]}
-                size={size}
-                color={color}
-                bubble={bubble}
-                isTargetBubble={targetBubble === bubble.id}
-                onBubbleClick={handleBubbleClick}
-                orbitRadius={orbitRadius}
-                orbitSpeed={orbitSpeed}
-                orbitOffset={orbitOffset}
-                bubbleIndex={index}
-                allBubblePositions={allBubblePositions}
-              />
-            </group>
-          );
-        })}
+        {bubbles.length > 0 ? (
+          bubbles.map((bubble, index) => {
+            // Calculate orbital parameters with more variation
+            const orbitGroup = index % 5; // 5 main orbit groups for more distribution
+            const baseRadius = 5 + orbitGroup * 2.5; // Increased radius and spacing between groups
+            const radiusVariation = (index % 7) * 0.8; // More variation within groups
+            const orbitRadius = baseRadius + radiusVariation;
+            
+            // Orbit speed and initial angle with more variation
+            const baseSpeed = 0.0006 + (orbitGroup * 0.0002);
+            const speedVariation = (index % 9) * 0.00012;
+            const orbitSpeed = baseSpeed - speedVariation;
+            const orbitOffset = index * (Math.PI / (bubbles.length / 2)); // Distribute bubbles evenly
+            
+            // Starting position on the orbit
+            const startAngle = orbitOffset;
+            const x = Math.cos(startAngle) * orbitRadius;
+            const y = Math.sin(index * 0.7) * 3.5; // More vertical distribution
+            const z = Math.sin(startAngle) * orbitRadius;
+            
+            // Determine size and color based on reflection count more dramatically
+            const reflectCount = bubble.reflect_count || 0;
+            
+            // More dramatic size scaling
+            let size = 0.8 + (reflectCount * 0.15); // Increased base size
+            // Cap size at a reasonable maximum
+            size = Math.min(size, 2.8);
+            
+            // Use golden-yellow palette to match logo (brighter, more consistent)
+            let color;
+            if (reflectCount >= 15) {
+              color = '#FFD000'; // Bright gold
+            } else if (reflectCount >= 10) {
+              color = '#FFD933'; // Slightly lighter gold
+            } else if (reflectCount >= 5) {
+              color = '#FFE066'; // Light gold
+            } else if (reflectCount >= 1) {
+              color = '#FFEC99'; // Very light gold
+            } else {
+              color = '#FFD000'; // Default gold
+            }
+            
+            // Configure event handlers for tooltip
+            const handlePointerOver = () => {
+              setHoveredBubble(bubble);
+              setTooltipVisible(true);
+            };
+            
+            const handlePointerOut = () => {
+              setTooltipVisible(false);
+              setHoveredBubble(null);
+            };
+            
+            return (
+              <group 
+                key={bubble.id}
+                onPointerOver={handlePointerOver}
+                onPointerOut={handlePointerOut}
+              >
+                <BubbleSphere
+                  position={[x, y, z]}
+                  size={size}
+                  color={color}
+                  bubble={bubble}
+                  isTargetBubble={targetBubble === bubble.id}
+                  onBubbleClick={handleBubbleClick}
+                  orbitRadius={orbitRadius}
+                  orbitSpeed={orbitSpeed}
+                  orbitOffset={orbitOffset}
+                  bubbleIndex={index}
+                  allBubblePositions={allBubblePositions}
+                />
+              </group>
+            );
+          })
+        ) : (
+          // Render empty state directly in the 3D canvas
+          <EmptyBubblesState />
+        )}
       </Canvas>
       
       {/* 2D tooltip overlay */}

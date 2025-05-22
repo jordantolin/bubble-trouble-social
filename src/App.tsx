@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import BubbleWorld from "@/components/BubbleWorld";
 import { useMockBubbles } from "@/hooks/useMockBubbles";
-import StreakAnimation from "@/components/StreakAnimation";
+import StreakNotice from "@/components/StreakNotice";
 import XPProgressBar from "@/components/XPProgressBar";
 import { useState, useEffect } from "react";
 
@@ -109,7 +109,7 @@ const MainLayout = () => {
             <SidebarTrigger className="mr-4">
               <Menu size={20} />
             </SidebarTrigger>
-            {/* Removed duplicate search bar */}
+            {/* Search bar removed from here to avoid duplication */}
           </div>
           
           <div className="flex items-center gap-4">
@@ -153,7 +153,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <StreakAnimation />
+          <StreakNotice />
           <BrowserRouter>
             <SidebarProvider>
               <Routes>

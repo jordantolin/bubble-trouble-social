@@ -59,17 +59,17 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       
-      console.log("Creating bubble with author_id:", user.id);
+      console.log("Creating bubble with author_id:", user.id, "and username:", user.username);
       
-      // Insert new bubble with correct fields (removed 'message' field which doesn't exist)
+      // Insert new bubble with correct fields
       const { data, error } = await supabase
         .from('bubbles')
         .insert({
           topic,
           name,
           description: description || null,
-          username: user?.username || 'Anonymous',
-          author_id: user.id, // Ensure author_id is set correctly from authenticated user
+          username: user.username || 'Anonymous',
+          author_id: user.id, // Make sure author_id is set correctly from authenticated user
           expires_at: expiresAt.toISOString(),
           size: 'sm', // Default size as string to match DB
         })
@@ -83,11 +83,11 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
       });
       
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating bubble:", error);
       toast({
-        title: "Error",
-        description: "Failed to create bubble. Please try again.",
+        title: "Error creating bubble",
+        description: error.message || "Failed to create bubble. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -104,6 +104,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Give your bubble a name"
+          className="border-bubble-yellow focus:ring-bubble-yellow"
           required
         />
       </div>
@@ -115,6 +116,7 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="What's your bubble about?"
+          className="border-bubble-yellow focus:ring-bubble-yellow"
           required
         />
       </div>
@@ -126,17 +128,36 @@ const CreateBubbleForm = ({ onClose }: { onClose: () => void }) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add more details about your bubble"
-          className="min-h-[100px]"
+          className="min-h-[100px] border-bubble-yellow focus:ring-bubble-yellow"
         />
       </div>
       
       <div className="flex justify-end space-x-2 pt-2">
         <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="bg-bubble-yellow hover:bg-bubble-yellow-dark text-white"
+        >
           {isSubmitting ? "Creating..." : "Create Bubble"}
         </Button>
       </div>
     </form>
+  );
+};
+
+// Empty State Component
+const EmptyBubbleState = () => {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-24 h-24 mb-6 relative">
+        <div className="animate-bubble-float absolute w-16 h-16 rounded-full bg-bubble-yellow opacity-60 left-4"></div>
+        <div className="animate-bubble-float absolute w-12 h-12 rounded-full bg-bubble-yellow opacity-80 right-0 top-4" style={{ animationDelay: '0.5s' }}></div>
+        <div className="animate-bubble-float absolute w-8 h-8 rounded-full bg-bubble-yellow opacity-70 left-2 bottom-0" style={{ animationDelay: '1s' }}></div>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No Bubbles Yet</h3>
+      <p className="text-gray-500 max-w-xs">Create your first bubble to start a conversation or try a different search term</p>
+    </div>
   );
 };
 
@@ -307,14 +328,14 @@ const Dashboard = () => {
               placeholder="Search bubbles or users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-slate-200 rounded-md"
+              className="w-full pl-8 h-9 bg-slate-100 dark:bg-slate-800 border border-bubble-yellow rounded-md focus:ring-bubble-yellow focus:border-bubble-yellow"
             />
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
           </div>
           <Button 
             variant="outline" 
             onClick={() => setShowFullView(!showFullView)}
-            className="text-sm"
+            className="text-sm border-bubble-yellow text-bubble-yellow-dark hover:bg-bubble-yellow/10"
           >
             {showFullView ? "Show List View" : "Show 3D View"}
           </Button>
@@ -324,13 +345,7 @@ const Dashboard = () => {
       {/* Enhanced Animated Bubble Orbit View with Dialog Integration */}
       {isLoading ? (
         <div className="flex justify-center py-6">
-          <p>Loading bubbles...</p>
-        </div>
-      ) : filteredBubbles.length === 0 ? (
-        <div className="text-center py-6">
-          <p className="text-gray-500">
-            {searchTerm ? "No bubbles found matching your search." : "No bubbles found. Create the first one!"}
-          </p>
+          <div className="w-16 h-16 rounded-full border-4 border-t-bubble-yellow border-b-bubble-yellow border-r-transparent border-l-transparent animate-spin"></div>
         </div>
       ) : (
         <>
@@ -347,7 +362,7 @@ const Dashboard = () => {
           </Dialog>
           
           {showFullView ? (
-            <div className="h-[60vh] border rounded-lg overflow-hidden">
+            <div className="h-[60vh] border rounded-lg overflow-hidden bg-gradient-to-b from-slate-900 to-black">
               <BubbleOrbit 
                 bubbles={filteredBubbles} 
                 mostReflectedBubbles={mostReflectedBubbles} 
@@ -368,67 +383,49 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {filteredBubbles.map((bubble) => (
-                <div 
-                  key={bubble.id} 
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
-                  onClick={() => navigate(`/bubble/${bubble.id}`)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{bubble.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{bubble.name}</h3>
-                        <p className="text-sm text-gray-500">By {bubble.username}</p>
+            {filteredBubbles.length > 0 ? (
+              <div className="space-y-4">
+                {filteredBubbles.map((bubble) => (
+                  <div 
+                    key={bubble.id} 
+                    className="p-4 border border-slate-200 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                    onClick={() => navigate(`/bubble/${bubble.id}`)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback className="bg-bubble-yellow text-white">
+                            {bubble.username?.charAt(0).toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-medium">{bubble.name}</h3>
+                          <p className="text-sm text-gray-500">By {bubble.username}</p>
+                        </div>
                       </div>
+                      <ReflectButton 
+                        bubbleId={bubble.id} 
+                        reflectCount={bubble.reflect_count || 0}
+                      />
                     </div>
-                    <ReflectButton 
-                      bubbleId={bubble.id} 
-                      reflectCount={bubble.reflect_count || 0}
-                    />
+                    <p className="text-sm font-medium">Topic: {bubble.topic}</p>
+                    {bubble.description && (
+                      <p className="text-sm text-gray-600">{bubble.description}</p>
+                    )}
+                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                      <span>Reflections: {bubble.reflect_count || 0}</span>
+                    </div>
                   </div>
-                  <p className="text-sm font-medium">Topic: {bubble.topic}</p>
-                  {bubble.description && (
-                    <p className="text-sm text-gray-600">{bubble.description}</p>
-                  )}
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>Reflections: {bubble.reflect_count || 0}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyBubbleState />
+            )}
           </CardContent>
         </Card>
       )}
       
-      {/* Move suggested connections to a corner card */}
-      <Card className="mt-8 max-w-xs ml-auto">
-        <CardHeader className="pb-2">
-          <CardTitle>Suggested Connections</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {["alex_designer", "maria_code", "dev_john"].map((name, index) => (
-              <div key={index} className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-bubble-yellow text-white">
-                    {name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs font-medium">{name}</p>
-                  <Button variant="outline" size="sm" className="mt-1 h-6 text-xs py-0">
-                    Connect
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Suggested connections removed as requested */}
     </div>
   );
 };
